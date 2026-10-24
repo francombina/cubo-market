@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo Market - Variaciones US</title>
+    <title>Cubo Market - US Market</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -18,7 +18,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding: 16px; max-width: 900px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-        h1 { font-size: 1.2rem; }
+        h1 { font-size: 1.1rem; }
         button { background: var(--blue); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
         .table-container { width: 100%; overflow-x: auto; background: var(--card); border-radius: 8px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
@@ -33,7 +33,7 @@
 <body>
 
     <header>
-        <h1>US Market — Variaciones (%)</h1>
+        <h1>US Market — Cotizaciones</h1>
         <button onclick="cargarPrecios()">Actualizar</button>
     </header>
 
@@ -45,75 +45,57 @@
                 <tr>
                     <th>Ticker</th>
                     <th>Precio (USD)</th>
-                    <th>Diaria (1D)</th>
-                    <th>Semanal (1W)</th>
-                    <th>Mensual (1M)</th>
-                    <th>Anual (1Y)</th>
+                    <th>Cambio Diario</th>
                 </tr>
             </thead>
             <tbody id="tabla-body">
-                <tr><td colspan="6" style="text-align:center; color:var(--muted);">Cargando...</td></tr>
+                <tr><td colspan="3" style="text-align:center; color:var(--muted);">Cargando...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        const TICKERS = [
-            { symbol: "AAPL", name: "Apple" },
-            { symbol: "MSFT", name: "Microsoft" },
-            { symbol: "GOOGL", name: "Alphabet" },
-            { symbol: "NVDA", name: "NVIDIA" },
-            { symbol: "TSLA", name: "Tesla" },
-            { symbol: "AMZN", name: "Amazon" },
-            { symbol: "META", name: "Meta" }
-        ];
+        const TICKERS = ["AAPL", "MSFT", "GOOGL", "NVDA", "TSLA", "AMZN", "META"];
 
         async function cargarPrecios() {
             const status = document.getElementById("status");
             const tbody = document.getElementById("tabla-body");
-            status.innerText = "Consultando Yahoo Finance...";
+            status.innerText = "Conectando con servidor de mercado...";
 
-            const promesas = TICKERS.map(async (item) => {
-                try {
-                    // Consulta limpia a Yahoo Finance a través de proxy sin bloqueo CORS
-                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`;
-                    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-                    
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error();
-                    const data = await res.json();
-                    
-                    const quotes = data.chart.result[0].indicators.quote[0].close.filter(x => x !== null);
-                    const current = quotes[quotes.length - 1];
+            try {
+                // Usamos la API pública de cotizaciones en batch que no genera conflictos de CORS en móviles
+                const symbolsStr = TICKERS.join(",");
+                const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsStr}`;
+                
+                // Usamos un proxy de respaldo ultra rápido (corsproxy.io)
+                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+                if (!res.ok) throw new Error("Error de red");
+                
+                const data = await res.json();
+                const quotes = data.quoteResponse.result;
 
-                    const p1D = quotes[quotes.length - 2] || current;
-                    const p1W = quotes[quotes.length - 6] || quotes[0];
-                    const p1M = quotes[quotes.length - 22] || quotes[0];
-                    const p1Y = quotes[0];
+                tbody.innerHTML = "";
 
-                    const r1D = ((current - p1D) / p1D) * 100;
-                    const r1W = ((current - p1W) / p1W) * 100;
-                    const r1M = ((current - p1M) / p1M) * 100;
-                    const r1Y = ((current - p1Y) / p1Y) * 100;
+                quotes.forEach(q => {
+                    const price = q.regularMarketPrice || 0;
+                    const change = q.regularMarketChangePercent || 0;
+                    const isPos = change >= 0;
 
-                    return `
+                    tbody.innerHTML += `
                         <tr>
-                            <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--muted)">(${item.name})</span></td>
-                            <td>$${current.toFixed(2)}</td>
-                            <td class="${r1D >= 0 ? 'pos' : 'neg'}">${r1D >= 0 ? '+' : ''}${r1D.toFixed(2)}%</td>
-                            <td class="${r1W >= 0 ? 'pos' : 'neg'}">${r1W >= 0 ? '+' : ''}${r1W.toFixed(2)}%</td>
-                            <td class="${r1M >= 0 ? 'pos' : 'neg'}">${r1M >= 0 ? '+' : ''}${r1M.toFixed(2)}%</td>
-                            <td class="${r1Y >= 0 ? 'pos' : 'neg'}">${r1Y >= 0 ? '+' : ''}${r1Y.toFixed(2)}%</td>
+                            <td><strong>${q.symbol}</strong> <span style="font-size:0.75rem; color:var(--muted)">(${q.shortName || ''})</span></td>
+                            <td>$${price.toFixed(2)}</td>
+                            <td class="${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${change.toFixed(2)}%</td>
                         </tr>
                     `;
-                } catch (e) {
-                    return `<tr><td><strong>${item.symbol}</strong></td><td colspan="5" style="color:var(--muted)">Sin datos</td></tr>`;
-                }
-            });
+                });
 
-            const filas = await Promise.all(promesas);
-            tbody.innerHTML = filas.join("");
-            status.innerText = "Última actualización: " + new Date().toLocaleTimeString();
+                status.innerText = "Actualizado: " + new Date().toLocaleTimeString();
+
+            } catch (e) {
+                status.innerText = "Error al actualizar. Reintentando...";
+                console.error(e);
+            }
         }
 
         window.onload = cargarPrecios;
