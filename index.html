@@ -153,92 +153,92 @@
                 <div>
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
                         <i data-lucide="database" class="w-5 h-5 text-purple-400"></i>
-                        Fundamentales de EE.UU. (SEC EDGAR Official API)
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Reportes financieros oficiales procesados via XBRL directamente de data.sec.gov</p>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-900/50 uppercase text-xs text-slate-400 border-b border-card">
-                        <tr>
-                            <th class="p-3.5">Empresa</th>
-                            <th class="p-3.5">CIK</th>
-                            <th class="p-3.5">Último Ingreso Reportado</th>
-                            <th class="p-3.5">EBIT / Utilidad Op.</th>
-                            <th class="p-3.5">Estado SEC</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sec-tbody" class="divide-y divide-slate-800">
-                        <tr>
-                            <td colspan="5" class="p-6 text-center text-slate-500">Cargando estados financieros SEC EDGAR...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        // Fetch Dólares desde DolarApi.com (Línea en vivo real sin registros históricos viejos)
+        async function fetchDolares() {
+            try {
+                // Fetch paralelo para obtener cotizaciones en tiempo real
+                const res = await fetch('https://dolarapi.com/v1/dolares');
+                if (!res.ok) throw new Error("Err DolarApi");
+                const data = await res.json();
 
-    </main>
+                const oficial = data.find(d => d.casa === 'oficial');
+                const mep = data.find(d => d.casa === 'bolsa');
+                const ccl = data.find(d => d.casa === 'contadoconliqui');
 
-    <!-- Footer -->
-    <footer class="bg-card border-t border-card py-4 text-center text-xs text-slate-500 mt-8">
-        <p>Cubo Market Terminal &copy; 2026. Conectado a ArgentinaDatos, Yahoo Finance API & SEC EDGAR.</p>
-    </footer>
+                if (oficial && oficial.venta) {
+                    document.getElementById('val-oficial').innerText = `$ ${oficial.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('sub-oficial').innerText = `Actualizado: ${formatDate(oficial.fechaActualizacion)}`;
+                }
+                if (mep && mep.venta) {
+                    document.getElementById('val-mep').innerText = `$ ${mep.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('sub-mep').innerText = `Actualizado: ${formatDate(mep.fechaActualizacion)}`;
+                }
+                if (ccl && ccl.venta) {
+                    document.getElementById('val-ccl').innerText = `$ ${ccl.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    document.getElementById('sub-ccl').innerText = `Actualizado: ${formatDate(ccl.fechaActualizacion)}`;
+                }
+            } catch (err) {
+                console.warn("Fallback a ArgentinaDatos para Dólares...", err);
+                try {
+                    const rOfi = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial/ultimo');
+                    const dOfi = await rOfi.json();
+                    if (dOfi && dOfi.venta) {
+                        document.getElementById('val-oficial').innerText = `$ ${dOfi.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        document.getElementById('sub-oficial').innerText = `Fecha: ${dOfi.fecha || 'Hoy'}`;
+                    }
 
-    <!-- App Logic Script -->
-    <script>
-        // User configuration for SEC EDGAR compliance
-        const USER_EMAIL = "francisco.combina@gmail.com";
-        const SEC_HEADERS = { "User-Agent": `CuboMarketTerminal/1.0 (${USER_EMAIL})` };
+                    const rMep = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares/bolsa/ultimo');
+                    const dMep = await rMep.json();
+                    if (dMep && dMep.venta) {
+                        document.getElementById('val-mep').innerText = `$ ${dMep.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        document.getElementById('sub-mep').innerText = `Fecha: ${dMep.fecha || 'Hoy'}`;
+                    }
 
-        // Default symbols to fetch from Yahoo Finance
-        const WATCHLIST_STOCKS = [
-            { ticker: "GGAL.BA", name: "Grupo Financiero Galicia", source: "Yahoo (BYMA)" },
-            { ticker: "YPFD.BA", name: "YPF S.A.", source: "Yahoo (BYMA)" },
-            { ticker: "PAMP.BA", name: "Pampa Energía", source: "Yahoo (BYMA)" },
-            { ticker: "AAPL", name: "Apple Inc.", source: "Yahoo (NASDAQ)" },
-            { ticker: "MSFT", name: "Microsoft Corp.", source: "Yahoo (NASDAQ)" },
-            { ticker: "GOOGL", name: "Alphabet Inc.", source: "Yahoo (NASDAQ)" },
-            { ticker: "NVDA", name: "NVIDIA Corp.", source: "Yahoo (NASDAQ)" },
-            { ticker: "TSLA", name: "Tesla Inc.", source: "Yahoo (NASDAQ)" },
-            { ticker: "MELI", name: "MercadoLibre Inc.", source: "Yahoo (NASDAQ)" },
-            { ticker: "META", name: "Meta Platforms", source: "Yahoo (NASDAQ)" }
-        ];
+                    const rCcl = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui/ultimo');
+                    const dCcl = await rCcl.json();
+                    if (dCcl && dCcl.venta) {
+                        document.getElementById('val-ccl').innerText = `$ ${dCcl.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        document.getElementById('sub-ccl').innerText = `Fecha: ${dCcl.fecha || 'Hoy'}`;
+                    }
+                } catch(e) {
+                    console.error("Error en fallback de Dólares", e);
+                }
+            }
+        }
 
-        // Core tickers for SEC EDGAR fundamentals (CIK Numbers)
-        const SEC_COMPANIES = [
-            { name: "Apple Inc.", CIK: "0000320193", ticker: "AAPL" },
-            { name: "Microsoft Corp.", CIK: "0000789019", ticker: "MSFT" },
-            { name: "Alphabet Inc.", CIK: "0001652044", ticker: "GOOGL" },
-            { name: "Tesla Inc.", CIK: "0001318605", ticker: "TSLA" }
-        ];
+        // Fetch Plazo Fijo / Badlar & Riesgo País
+        async function fetchPlazoFijoAndRiesgo() {
+            // Plazo Fijo / Tasas
+            try {
+                const resTasa = await fetch('https://api.argentinadatos.com/v1/finanzas/tasas/plazoFijo');
+                if (resTasa.ok) {
+                    const dataTasa = await resTasa.json();
+                    if (dataTasa && dataTasa.length > 0) {
+                        // Obtener el último registro disponible
+                        const last = dataTasa[dataTasa.length - 1];
+                        const tnaVal = last.tna ? (last.tna > 1 ? last.tna : last.tna * 100) : 35;
+                        document.getElementById('val-badlar').innerText = `${tnaVal.toFixed(1)}%`;
+                        document.getElementById('sub-badlar').innerText = `${last.entidad || 'BCRA TNA PF'}`;
+                    }
+                }
+            } catch (e) {
+                document.getElementById('val-badlar').innerText = "35.0%";
+                document.getElementById('sub-badlar').innerText = "TNA Promedio PF";
+            }
 
-        let stocksDataStore = [];
-
-        // Initialize icons and application on load
-        document.addEventListener("DOMContentLoaded", () => {
-            lucide.createIcons();
-            fetchLiveMarketData();
-            fetchSECFundamentals();
-        });
-
-        // Tab Switching Logic
-        function switchTab(tab) {
-            const stocksContent = document.getElementById("content-stocks");
-            const secContent = document.getElementById("content-sec");
-            const tabStocksBtn = document.getElementById("tab-stocks");
-            const tabSecBtn = document.getElementById("tab-sec");
-
-            if (tab === "stocks") {
-                stocksContent.classList.remove("hidden");
-                secContent.classList.add("hidden");
-                tabStocksBtn.className = "pb-3 border-b-2 border-blue-500 text-blue-400 transition-colors whitespace-nowrap";
-                tabSecBtn.className = "pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap";
-            } else {
-                stocksContent.classList.add("hidden");
-                secContent.classList.remove("hidden");
-                tabSecBtn.className = "pb-3 border-b-2 border-purple-500 text-purple-400 transition-colors whitespace-nowrap";
-                tabStocksBtn.className = "pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap";
+            // Riesgo Pais
+            try {
+                const resRiesgo = await fetch('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo');
+                if (resRiesgo.ok) {
+                    const dataRiesgo = await resRiesgo.json();
+                    if (dataRiesgo && dataRiesgo.valor) {
+                        document.getElementById('val-riesgo').innerText = `${dataRiesgo.valor} pts`;
+                        document.getElementById('sub-riesgo').innerText = `Fecha: ${dataRiesgo.fecha || 'Reciente'}`;
+                    }
+                }
+            } catch (e) {
+                document.getElementById('val-riesgo').innerText = "-- pts";
+                document.getElementById('sub-riesgo').innerText = "Error al cargar";
             }
         }
 
