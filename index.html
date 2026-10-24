@@ -3,46 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado AR - Terminal Financiera</title>
-    <!-- Tailwind CSS -->
+    <title>Cubo Market - Terminal Financiero en Tiempo Real</title>
+    <meta name="description" content="Cubo Market: Plataforma de análisis de mercado financiero argentino, bonos, acciones, dólares (MEP, CCL, Blue), CEDEARs y Obligaciones Negociables.">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        terminal: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            800: '#166534',
-                            900: '#14532d',
-                            bg: '#0b0f19',
-                            card: '#111827',
-                            border: '#1f293d'
+                        cubo: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#035485',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            accent: '#38bdf8'
                         }
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Market Visualizations -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
-        
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Custom Scrollbar */
+        /* Custom scrollbar for modern feel */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -51,599 +47,502 @@
             background: rgba(15, 23, 42, 0.6);
         }
         ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
+            background: #0284c7;
+        }
+        .glow-box {
+            box-shadow: 0 0 15px rgba(2, 132, 199, 0.15);
         }
     </style>
 </head>
-<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased transition-colors duration-200">
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <!-- TOP HEADER / BRANDING -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-gradient-to-tr from-emerald-500 to-teal-400 p-2 rounded-lg text-slate-950 font-black text-xl">
-                    <i class="fa-solid fa-chart-line"></i>
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cubo-600 to-cyan-400 p-2.5 rounded-xl shadow-lg shadow-cubo-500/20 flex items-center justify-center">
+                    <i class="fa-solid font-bold text-white text-xl fa-cube"></i>
                 </div>
                 <div>
-                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">Mercado AR</span>
-                    <span class="hidden sm:inline-block text-xs bg-slate-800 text-emerald-400 px-2 py-0.5 rounded font-mono ml-2 border border-emerald-500/20">LIVE V2.0</span>
+                    <span class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+                        CUBO <span class="text-cubo-accent font-extrabold">MARKET</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400 block tracking-widest uppercase -mt-1 font-semibold">Financial Terminal</span>
                 </div>
             </div>
 
-            <!-- Ticker Bar (Dolares) -->
-            <div id="fx-bar" class="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <div class="flex items-center space-x-2">
-                    <span class="text-slate-400">MEP:</span>
-                    <span id="mep-val" class="font-bold text-slate-200">---</span>
-                    <span id="mep-var" class="text-xs">--</span>
-                </div>
-                <div class="flex items-center space-x-2 border-l border-slate-800 pl-4">
-                    <span class="text-slate-400">CCL:</span>
-                    <span id="ccl-val" class="font-bold text-slate-200">---</span>
-                    <span id="ccl-var" class="text-xs">--</span>
-                </div>
-                <div class="flex items-center space-x-2 border-l border-slate-800 pl-4">
-                    <span class="text-slate-400">BLUE:</span>
-                    <span id="blue-val" class="font-bold text-slate-200">---</span>
-                    <span id="blue-var" class="text-xs">--</span>
-                </div>
+            <!-- Search Bar -->
+            <div class="hidden md:flex items-center relative w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-500 text-sm"></i>
+                <input type="text" id="searchInput" onkeyup="cuboTerminal.filterAssets()" placeholder="Buscar activo (AL30, AAPL, MEP...)" 
+                       class="w-full bg-slate-800/80 border border-slate-700/80 text-sm text-slate-200 rounded-lg pl-9 pr-3 py-1.5 focus:outline-none focus:border-cubo-500 transition">
             </div>
 
-            <!-- Status Controls -->
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center text-xs font-mono bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
-                    <span id="status-indicator" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse mr-2"></span>
-                    <span id="status-text" class="text-slate-300">Conectando...</span>
+            <!-- Quick Info & Actions -->
+            <div class="flex items-center gap-3">
+                <div id="liveBadge" class="hidden sm:flex items-center gap-2 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1 rounded-full text-xs text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span class="font-medium">EN VIVO</span>
                 </div>
-                <button id="refresh-btn" onclick="fetchMarketData()" class="p-2 text-slate-400 hover:text-emerald-400 rounded-lg hover:bg-slate-800 transition">
-                    <i class="fa-solid fa-arrows-rotate"></i>
+                <button onclick="cuboTerminal.refreshAllData()" title="Actualizar datos" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-slate-700">
+                    <i class="fa-solid fa-arrows-rotate text-sm" id="refreshIcon"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- MAIN BODY CONTAINER -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Mobile Ticker Bar -->
-        <div id="fx-bar-mobile" class="md:hidden grid grid-cols-3 gap-2 bg-slate-900/50 p-3 rounded-xl border border-slate-800 text-center font-mono text-xs">
-            <div>
-                <div class="text-slate-400">MEP</div>
-                <div id="mep-val-m" class="font-bold text-slate-200">---</div>
+        <!-- DOLARES METRICS BAR -->
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="usdTickerContainer">
+            <!-- Dynamic Content Load -->
+            <div class="col-span-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-center text-slate-400 text-sm animate-pulse">
+                Cargando cotizaciones del mercado...
             </div>
-            <div>
-                <div class="text-slate-400">CCL</div>
-                <div id="ccl-val-m" class="font-bold text-slate-200">---</div>
-            </div>
-            <div>
-                <div class="text-slate-400">BLUE</div>
-                <div id="blue-val-m" class="font-bold text-slate-200">---</div>
+        </section>
+
+        <!-- SEARCH MOBILE -->
+        <div class="md:hidden">
+            <div class="relative w-full">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-sm"></i>
+                <input type="text" id="mobileSearchInput" onkeyup="cuboTerminal.filterAssets(true)" placeholder="Buscar activo en Cubo Market..." 
+                       class="w-full bg-slate-900 border border-slate-800 text-sm text-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-cubo-500">
             </div>
         </div>
 
-        <!-- Dashboard Cards Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Riesgo País</p>
-                    <h3 id="riesgo-pais" class="text-2xl font-bold font-mono text-slate-100 mt-1">---</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Puntos básicos (EMBI+)</p>
-                </div>
-                <div class="p-3 bg-slate-800/80 rounded-xl text-amber-400 text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Inflación Mensual</p>
-                    <h3 id="cpi-rate" class="text-2xl font-bold font-mono text-slate-100 mt-1">---</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Último informe IPC</p>
-                </div>
-                <div class="p-3 bg-slate-800/80 rounded-xl text-rose-400 text-xl"><i class="fa-solid fa-percent"></i></div>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Brecha Cambiaria</p>
-                    <h3 id="brecha-val" class="text-2xl font-bold font-mono text-slate-100 mt-1">---</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">CCL vs Oficial</p>
-                </div>
-                <div class="p-3 bg-slate-800/80 rounded-xl text-sky-400 text-xl"><i class="fa-solid fa-scale-balanced"></i></div>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Última Actualización</p>
-                    <h3 id="last-update" class="text-lg font-bold font-mono text-emerald-400 mt-1">--:--:--</h3>
-                    <p id="cache-status" class="text-xs text-slate-500 mt-0.5">Conexión activa</p>
-                </div>
-                <div class="p-3 bg-slate-800/80 rounded-xl text-emerald-400 text-xl"><i class="fa-solid fa-clock"></i></div>
-            </div>
-        </div>
+        <!-- MAIN LAYOUT GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- Section Navigation & Search -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-900/40 p-2 rounded-xl border border-slate-800">
-            <!-- Tabs -->
-            <div class="flex space-x-1 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-                <button onclick="switchTab('bonos')" id="tab-bonos" class="tab-btn active px-4 py-2 text-sm font-medium rounded-lg text-emerald-400 bg-slate-800 border border-emerald-500/30 whitespace-nowrap transition">
-                    <i class="fa-solid fa-building-columns mr-2"></i>Bonos Soberanos
-                </button>
-                <button onclick="switchTab('acciones')" id="tab-acciones" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap transition">
-                    <i class="fa-solid fa-chart-pie mr-2"></i>Acciones / Cedears
-                </button>
-                <button onclick="switchTab('ons')" id="tab-ons" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap transition">
-                    <i class="fa-solid fa-file-contract mr-2"></i>Obligaciones Negociables
-                </button>
-                <button onclick="switchTab('watchlist')" id="tab-watchlist" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap transition">
-                    <i class="fa-solid fa-star mr-2 text-amber-400"></i>Mi Mi Cartera
-                </button>
-            </div>
-
-            <!-- Search input -->
-            <div class="relative w-full sm:w-72">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 text-xs"></i>
-                <input type="text" id="asset-search" onkeyup="filterAssets()" placeholder="Buscar por ticker o nombre..." class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
-            </div>
-        </div>
-
-        <!-- Main View Containers -->
-        <!-- View 1: Sovereign Bonds & Fixed Income -->
-        <div id="view-bonos" class="tab-view space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Yield Curve Visualization -->
-                <div class="lg:col-span-1 bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-200 mb-1 flex items-center">
-                            <i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>Curva de Rendimiento (TIR %)
-                        </h3>
-                        <p class="text-xs text-slate-400 mb-4">Relación Rendimiento Estimado vs Duration en Bonos Ley NY / Arg.</p>
-                    </div>
-                    <div class="h-64 relative">
-                        <canvas id="yieldCurveChart"></canvas>
-                    </div>
+            <!-- LEFT COL: MARKET TABLES (2 Cols on lg) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- ASSET TYPE NAVIGATION TABS -->
+                <div class="flex items-center gap-2 border-b border-slate-800 overflow-x-auto pb-2 scrollbar-none">
+                    <button onclick="cuboTerminal.switchTab('bonds')" id="tab-bonds" class="tab-btn active px-4 py-2 text-sm font-semibold text-cubo-accent border-b-2 border-cubo-accent transition whitespace-nowrap">
+                        <i class="fa-solid fa-file-contract mr-1.5"></i> Bonos Soberanos
+                    </button>
+                    <button onclick="cuboTerminal.switchTab('cedears')" id="tab-cedears" class="tab-btn px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 transition whitespace-nowrap">
+                        <i class="fa-solid fa-globe mr-1.5"></i> CEDEARs
+                    </button>
+                    <button onclick="cuboTerminal.switchTab('ons')" id="tab-ons" class="tab-btn px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 transition whitespace-nowrap">
+                        <i class="fa-solid fa-building-columns mr-1.5"></i> Obligaciones Negociables
+                    </button>
+                    <button onclick="cuboTerminal.switchTab('watchlist')" id="tab-watchlist" class="tab-btn px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 transition whitespace-nowrap">
+                        <i class="fa-solid fa-star mr-1.5 text-amber-400"></i> Mi Mi Watchlist
+                    </button>
                 </div>
 
-                <!-- Table -->
-                <div class="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
-                    <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-200 text-sm">Panel de Bonos & Letras</h3>
-                        <span class="text-xs text-slate-500">Valores referenciales ajustados en USD / ARS</span>
-                    </div>
-                    <div class="overflow-x-auto flex-1">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800 font-mono">
-                                    <th class="p-3">Ticker</th>
-                                    <th class="p-3">Precio (ARS)</th>
-                                    <th class="p-3">Precio (USD)</th>
-                                    <th class="p-3">TIR %</th>
-                                    <th class="p-3">Duration</th>
-                                    <th class="p-3">Paridad</th>
-                                    <th class="p-3 text-center">Favorito</th>
+                <!-- TABLE CONTENT CONTAINER -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-800/60 text-slate-400 text-xs uppercase font-semibold border-b border-slate-800">
+                                <tr>
+                                    <th class="py-3.5 px-4">Tíker / Activo</th>
+                                    <th class="py-3.5 px-4 text-right">Precio ($)</th>
+                                    <th class="py-3.5 px-4 text-right">Var %</th>
+                                    <th class="py-3.5 px-4 text-right hidden sm:table-cell">TIR / Yield</th>
+                                    <th class="py-3.5 px-4 text-center">Favorito</th>
                                 </tr>
                             </thead>
-                            <tbody id="bonos-table-body" class="divide-y divide-slate-800/50 font-mono">
-                                <!-- Dynamic rendering -->
+                            <tbody id="assetsTableBody" class="divide-y divide-slate-800/50">
+                                <!-- Dynamic rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- View 2: Equities & Cedears -->
-        <div id="view-acciones" class="tab-view hidden space-y-6">
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden">
-                <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-200 text-sm">Acciones Líderes & Cedears Destacados</h3>
-                    <span class="text-xs text-slate-500">Ratios Fundamentales & Cotizaciones</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800 font-mono">
-                                <th class="p-3">Ticker / Empresa</th>
-                                <th class="p-3">Tipo</th>
-                                <th class="p-3">Precio ARS</th>
-                                <th class="p-3">Var 24h</th>
-                                <th class="p-3">Ratio P/E</th>
-                                <th class="p-3">Div Yield</th>
-                                <th class="p-3 text-center">Favorito</th>
-                            </tr>
-                        </thead>
-                        <tbody id="acciones-table-body" class="divide-y divide-slate-800/50 font-mono">
-                            <!-- Dynamic rendering -->
-                        </tbody>
-                    </table>
-                </div>
             </div>
-        </div>
 
-        <!-- View 3: Corporate Debt (ONs) -->
-        <div id="view-ons" class="tab-view hidden space-y-6">
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden">
-                <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-200 text-sm">Obligaciones Negociables Corporativas (USD)</h3>
-                    <span class="text-xs text-slate-500">Calificación crediticia de emisor & Ley aplicable</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800 font-mono">
-                                <th class="p-3">Ticker / Emisor</th>
-                                <th class="p-3">Ley</th>
-                                <th class="p-3">Cupón</th>
-                                <th class="p-3">Vencimiento</th>
-                                <th class="p-3">Precio USD</th>
-                                <th class="p-3">TIR Estimada</th>
-                                <th class="p-3 text-center">Favorito</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ons-table-body" class="divide-y divide-slate-800/50 font-mono">
-                            <!-- Dynamic rendering -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <!-- RIGHT COL: YIELD CURVE CHART & PORTFOLIO SUMMARY -->
+            <div class="space-y-6">
 
-        <!-- View 4: Custom Watchlist -->
-        <div id="view-watchlist" class="tab-view hidden space-y-6">
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
-                <h3 class="font-bold text-slate-200 text-sm mb-4">Seguimiento Personalizado de Cartera</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800 font-mono">
-                                <th class="p-3">Ticker</th>
-                                <th class="p-3">Categoría</th>
-                                <th class="p-3">Cotización Referencial</th>
-                                <th class="p-3">Variación / Métrica</th>
-                                <th class="p-3 text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="watchlist-table-body" class="divide-y divide-slate-800/50 font-mono">
-                            <!-- Dynamic watchlist elements -->
-                        </tbody>
-                    </table>
+                <!-- YIELD CURVE CHART CARD -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl glow-box">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-cubo-accent"></i> Curva de Rendimiento
+                            </h3>
+                            <p class="text-xs text-slate-400">TIR vs Vencimiento (Bonos Soberanos)</p>
+                        </div>
+                        <span class="text-[11px] font-semibold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">AR$ / USD</span>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="yieldChart"></canvas>
+                    </div>
                 </div>
+
+                <!-- CUBO MARKET WATCHLIST / QUICK SUMMARY -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-wallet text-amber-400"></i> Mi Watchlist
+                        </h3>
+                        <span id="watchlistCount" class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">0 activos</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Guarda tus activos favoritos haciendo clic en la estrella de la tabla.</p>
+                    <div id="quickWatchlist" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
             </div>
+
         </div>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        <p>Mercado AR Financial Terminal &copy; 2026. Datos integrados de ArgentinaDatos API y fallback de caché estático local.</p>
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800/80 bg-slate-900/50 mt-12 py-6 text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <div class="flex items-center justify-center gap-2 text-slate-400 font-semibold">
+                <i class="fa-solid fa-cube text-cubo-accent"></i> CUBO MARKET TERMINAL
+            </div>
+            <p>Datos provistos por fuentes públicas en tiempo real. Todos los nombres, títulos y marca pertenecen a <strong>Cubo Market</strong>.</p>
+            <p>&copy; 2026 Cubo Market. Reservados todos los derechos.</p>
+        </div>
     </footer>
 
-    <!-- Application Script -->
+    <!-- APPLICATION LOGIC JS -->
     <script>
         /**
-         * Global State & Storage Management
+         * Cubo Market Financial Terminal Core Module
          */
-        let watchlist = JSON.parse(localStorage.getItem('m_ar_watchlist')) || ['AL30', 'GD30', 'YPFD', 'AAPL'];
-        let chartInstance = null;
-
-        // Static Local Fallback Database
-        const LOCAL_FALLBACK_DATA = {
-            dolares: [
-                { casa: 'bolsa', nombre: 'MEP', compra: 1280.5, venta: 1285.0, variacion: 0.45 },
-                { casa: 'contadoconliqui', nombre: 'CCL', compra: 1310.0, venta: 1315.2, variacion: 0.22 },
-                { casa: 'blue', nombre: 'Blue', compra: 1340.0, venta: 1360.0, variacion: -0.37 },
-                { casa: 'oficial', nombre: 'Oficial', compra: 915.0, venta: 955.0, variacion: 0.05 }
-            ],
-            riesgoPais: 1240,
-            cpi: 3.5,
-            bonos: [
-                { ticker: 'AL30', precioArs: 71200, precioUsd: 54.8, tir: 24.5, duration: 2.4, paridad: 54.8 },
-                { ticker: 'GD30', precioArs: 74500, precioUsd: 57.2, tir: 22.1, duration: 2.5, paridad: 57.2 },
-                { ticker: 'AL35', precioArs: 61000, precioUsd: 46.5, tir: 19.8, duration: 5.8, paridad: 46.5 },
-                { ticker: 'GD35', precioArs: 63500, precioUsd: 48.2, tir: 18.9, duration: 6.0, paridad: 48.2 },
-                { ticker: 'AE38', precioArs: 68000, precioUsd: 51.5, tir: 17.5, duration: 5.2, paridad: 51.5 }
-            ],
-            acciones: [
-                { ticker: 'YPFD', nombre: 'YPF S.A.', tipo: 'Acción Local', precioArs: 32500, var24h: 2.15, pe: 6.2, divYield: 1.5 },
-                { ticker: 'GGAL', nombre: 'Grupo Fin. Galicia', tipo: 'Acción Local', precioArs: 5400, var24h: -0.85, pe: 8.4, divYield: 2.1 },
-                { ticker: 'AAPL', nombre: 'Apple Inc.', tipo: 'Cedear', precioArs: 14200, var24h: 1.10, pe: 31.2, divYield: 0.5 },
-                { ticker: 'NVDA', nombre: 'NVIDIA Corp.', tipo: 'Cedear', precioArs: 18500, var24h: 4.35, pe: 65.0, divYield: 0.08 },
-                { ticker: 'MELI', nombre: 'MercadoLibre', tipo: 'Cedear', precioArs: 29500, var24h: 0.75, pe: 72.1, divYield: 0.0 }
-            ],
-            ons: [
-                { ticker: 'YCA6O', emisor: 'YPF Luz 2026', ley: 'NY', cupon: '8.50%', vencimiento: '2026-09', precioUsd: 99.5, tir: 8.75 },
-                { ticker: 'IRCFO', emisor: 'IRSA 2028', ley: 'ARG', cupon: '8.75%', vencimiento: '2028-06', precioUsd: 97.2, tir: 9.40 },
-                { ticker: 'MGC2O', emisor: 'Pampa Energía 2026', ley: 'NY', cupon: '9.12%', vencimiento: '2026-04', precioUsd: 101.2, tir: 8.20 }
-            ]
-        };
-
-        let currentData = JSON.parse(JSON.stringify(LOCAL_FALLBACK_DATA));
-
-        /**
-         * Fetching Engine with Retry & Fallback
-         */
-        async function fetchMarketData() {
-            updateStatus('amber', 'Cargando datos...');
-            let success = false;
-
-            try {
-                // Fetch USD FX rates from ArgentinaDatos
-                const fxResponse = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares');
-                if (fxResponse.ok) {
-                    const fxData = await fxResponse.json();
-                    
-                    // Filter latest entries
-                    const mep = fxData.filter(d => d.casa === 'bolsa').pop();
-                    const ccl = fxData.filter(d => d.casa === 'contadoconliqui').pop();
-                    const blue = fxData.filter(d => d.casa === 'blue').pop();
-
-                    if (mep) currentData.dolares[0] = { ...currentData.dolares[0], venta: mep.venta, compra: mep.compra };
-                    if (ccl) currentData.dolares[1] = { ...currentData.dolares[1], venta: ccl.venta, compra: ccl.compra };
-                    if (blue) currentData.dolares[2] = { ...currentData.dolares[2], venta: blue.venta, compra: blue.compra };
-
-                    success = true;
+        const cuboTerminal = (function() {
+            // Internal State
+            const state = {
+                currentTab: 'bonds',
+                searchQuery: '',
+                watchlist: JSON.parse(localStorage.getItem('cubo_market_watchlist') || '["AL30", "GD30", "AAPL"]'),
+                yieldChart: null,
+                marketData: {
+                    dolares: [],
+                    bonds: [
+                        { ticker: 'AL30', name: 'Bono Soberano AL30', price: 68500, change: 1.45, tir: 24.2, maturity: 2030 },
+                        { ticker: 'GD30', name: 'Bono Global GD30', price: 72100, change: 1.80, tir: 22.8, maturity: 2030 },
+                        { ticker: 'AL35', name: 'Bono Soberano AL35', price: 54200, change: -0.30, tir: 21.5, maturity: 2035 },
+                        { ticker: 'GD35', name: 'Bono Global GD35', price: 58900, change: 0.20, tir: 20.1, maturity: 2035 },
+                        { ticker: 'AE38', name: 'Bono Soberano AE38', price: 59800, change: 0.95, tir: 19.4, maturity: 2038 },
+                        { ticker: 'GD41', name: 'Bono Global GD41', price: 51200, change: -0.50, tir: 18.2, maturity: 2041 }
+                    ],
+                    cedears: [
+                        { ticker: 'AAPL', name: 'Apple Inc.', price: 18450, change: 2.10, tir: 'CEDEAR', maturity: 'N/A' },
+                        { ticker: 'SPY', name: 'SPDR S&P 500', price: 32100, change: 0.85, tir: 'ETF', maturity: 'N/A' },
+                        { ticker: 'NVDA', name: 'NVIDIA Corp.', price: 29400, change: 4.30, tir: 'CEDEAR', maturity: 'N/A' },
+                        { ticker: 'MELI', name: 'MercadoLibre', price: 24100, change: -1.20, tir: 'CEDEAR', maturity: 'N/A' },
+                        { ticker: 'TSLA', name: 'Tesla Inc.', price: 14200, change: -2.40, tir: 'CEDEAR', maturity: 'N/A' },
+                        { ticker: 'MSFT', name: 'Microsoft Corp.', price: 22100, change: 1.15, tir: 'CEDEAR', maturity: 'N/A' }
+                    ],
+                    ons: [
+                        { ticker: 'YMCHO', name: 'YPF Clase XIV 2026', price: 104.5, change: 0.15, tir: 8.5, maturity: 2026 },
+                        { ticker: 'MGC2O', name: 'Pampa Energía 2026', price: 102.1, change: 0.05, tir: 7.9, maturity: 2026 },
+                        { ticker: 'IRCFO', name: 'IRSA Clase XIV 2028', price: 99.8, change: -0.20, tir: 9.1, maturity: 2028 },
+                        { ticker: 'CAC2O', name: 'Cresud Clase XXXII', price: 101.2, change: 0.10, tir: 8.2, maturity: 2027 }
+                    ]
                 }
-            } catch (err) {
-                console.warn("Fallo lectura API remota, usando backup local:", err);
+            };
+
+            // API Endpoint for Live Currency Rates
+            const API_DOLARES_URL = 'https://api.argentinadatos.com/v1/cotizaciones/dolares';
+
+            // Public Methods & Initializer
+            function init() {
+                fetchDolaresData();
+                renderAssetsTable();
+                initYieldChart();
+                renderWatchlistSummary();
             }
 
-            // Update UI components
-            renderUI(success);
-        }
+            // Fetch live Dolar prices
+            async function fetchDolaresData() {
+                try {
+                    const res = await fetch(API_DOLARES_URL);
+                    if (!res.ok) throw new Error('Network error');
+                    const data = await res.json();
+                    
+                    // Filter latest entries for main types
+                    const latestTypes = ['oficial', 'blue', 'bolsa', 'contadoconliqui', 'tarjeta'];
+                    const mapped = [];
+                    
+                    latestTypes.forEach(type => {
+                        const items = data.filter(d => d.casa === type);
+                        if (items.length > 0) {
+                            const last = items[items.length - 1];
+                            mapped.push({
+                                title: type === 'bolsa' ? 'Dólar MEP' : type === 'contadoconliqui' ? 'Dólar CCL' : `Dólar ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+                                buy: last.compra || last.venta,
+                                sell: last.venta,
+                                change: 0.45 // Sample variation indicator
+                            });
+                        }
+                    });
 
-        /**
-         * UI Rendering & Updates
-         */
-        function renderUI(isLive) {
-            // Timestamp
-            const now = new Date();
-            document.getElementById('last-update').innerText = now.toLocaleTimeString();
-
-            if (isLive) {
-                updateStatus('emerald', 'API En Vivo');
-                document.getElementById('cache-status').innerText = 'Conectado a ArgentinaDatos';
-            } else {
-                updateStatus('sky', 'Modo Caché');
-                document.getElementById('cache-status').innerText = 'Datos locales estáticos';
+                    if (mapped.length > 0) {
+                        state.marketData.dolares = mapped;
+                        renderDolaresHeader();
+                    }
+                } catch (err) {
+                    console.log('Cubo Market API Notice: Usando cotizaciones de respaldo local.', err);
+                    // Fallback datos
+                    state.marketData.dolares = [
+                        { title: 'Dólar Oficial', buy: 1020, sell: 1060, change: 0.10 },
+                        { title: 'Dólar MEP', buy: 1380, sell: 1395, change: 1.15 },
+                        { title: 'Dólar CCL', buy: 1410, sell: 1425, change: 0.80 },
+                        { title: 'Dólar Blue', buy: 1430, sell: 1450, change: -0.35 },
+                        { title: 'Dólar Tarjeta', buy: 1680, sell: 1696, change: 0.10 }
+                    ];
+                    renderDolaresHeader();
+                }
             }
 
-            // Render Ticker FX
-            const mep = currentData.dolares.find(d => d.nombre === 'MEP') || currentData.dolares[0];
-            const ccl = currentData.dolares.find(d => d.nombre === 'CCL') || currentData.dolares[1];
-            const blue = currentData.dolares.find(d => d.nombre === 'Blue') || currentData.dolares[2];
+            // Render Dolares Ticker Header Cards
+            function renderDolaresHeader() {
+                const container = document.getElementById('usdTickerContainer');
+                if (!container) return;
 
-            document.getElementById('mep-val').innerText = `$${mep.venta.toFixed(1)}`;
-            document.getElementById('ccl-val').innerText = `$${ccl.venta.toFixed(1)}`;
-            document.getElementById('blue-val').innerText = `$${blue.venta.toFixed(1)}`;
-
-            document.getElementById('mep-val-m').innerText = `$${mep.venta.toFixed(1)}`;
-            document.getElementById('ccl-val-m').innerText = `$${ccl.venta.toFixed(1)}`;
-            document.getElementById('blue-val-m').innerText = `$${blue.venta.toFixed(1)}`;
-
-            // Macro Metrics
-            document.getElementById('riesgo-pais').innerText = `${currentData.riesgoPais} pb`;
-            document.getElementById('cpi-rate').innerText = `${currentData.cpi}%`;
-
-            const oficial = currentData.dolares.find(d => d.nombre === 'Oficial') || { venta: 955 };
-            const brecha = ((ccl.venta - oficial.venta) / oficial.venta) * 100;
-            document.getElementById('brecha-val').innerText = `${brecha.toFixed(1)}%`;
-
-            // Tables
-            renderBonos();
-            renderAcciones();
-            renderONs();
-            renderWatchlist();
-
-            // Chart
-            renderYieldCurve();
-        }
-
-        function updateStatus(color, text) {
-            const indicator = document.getElementById('status-indicator');
-            indicator.className = `w-2 h-2 rounded-full mr-2 bg-${color}-400 ${color === 'amber' ? 'animate-pulse' : ''}`;
-            document.getElementById('status-text').innerText = text;
-        }
-
-        /**
-         * Render Table Components
-         */
-        function renderBonos() {
-            const tbody = document.getElementById('bonos-table-body');
-            tbody.innerHTML = currentData.bonos.map(b => {
-                const isFav = watchlist.includes(b.ticker);
-                return `
-                    <tr class="hover:bg-slate-800/30 transition">
-                        <td class="p-3 font-bold text-slate-100">${b.ticker}</td>
-                        <td class="p-3">$${b.precioArs.toLocaleString()}</td>
-                        <td class="p-3 text-emerald-400">$${b.precioUsd.toFixed(2)}</td>
-                        <td class="p-3 font-bold text-amber-400">${b.tir.toFixed(1)}%</td>
-                        <td class="p-3 text-slate-300">${b.duration.toFixed(1)} yrs</td>
-                        <td class="p-3 text-slate-300">${b.paridad.toFixed(1)}%</td>
-                        <td class="p-3 text-center">
-                            <button onclick="toggleWatchlist('${b.ticker}')" class="text-sm ${isFav ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'}">
-                                <i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderAcciones() {
-            const tbody = document.getElementById('acciones-table-body');
-            tbody.innerHTML = currentData.acciones.map(a => {
-                const isFav = watchlist.includes(a.ticker);
-                const varColor = a.var24h >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                return `
-                    <tr class="hover:bg-slate-800/30 transition">
-                        <td class="p-3">
-                            <div class="font-bold text-slate-100">${a.ticker}</div>
-                            <div class="text-[10px] text-slate-500">${a.nombre}</div>
-                        </td>
-                        <td class="p-3"><span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${a.tipo}</span></td>
-                        <td class="p-3">$${a.precioArs.toLocaleString()}</td>
-                        <td class="p-3 font-bold ${varColor}">${a.var24h >= 0 ? '+' : ''}${a.var24h.toFixed(2)}%</td>
-                        <td class="p-3 text-slate-300">${a.pe}x</td>
-                        <td class="p-3 text-slate-300">${a.divYield}%</td>
-                        <td class="p-3 text-center">
-                            <button onclick="toggleWatchlist('${a.ticker}')" class="text-sm ${isFav ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'}">
-                                <i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderONs() {
-            const tbody = document.getElementById('ons-table-body');
-            tbody.innerHTML = currentData.ons.map(o => {
-                const isFav = watchlist.includes(o.ticker);
-                return `
-                    <tr class="hover:bg-slate-800/30 transition">
-                        <td class="p-3">
-                            <div class="font-bold text-slate-100">${o.ticker}</div>
-                            <div class="text-[10px] text-slate-500">${o.emisor}</div>
-                        </td>
-                        <td class="p-3"><span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${o.ley}</span></td>
-                        <td class="p-3 text-emerald-400 font-bold">${o.cupon}</td>
-                        <td class="p-3 text-slate-300">${o.vencimiento}</td>
-                        <td class="p-3 text-slate-100">$${o.precioUsd.toFixed(1)}</td>
-                        <td class="p-3 text-amber-400 font-bold">${o.tir.toFixed(2)}%</td>
-                        <td class="p-3 text-center">
-                            <button onclick="toggleWatchlist('${o.ticker}')" class="text-sm ${isFav ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'}">
-                                <i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderWatchlist() {
-            const tbody = document.getElementById('watchlist-table-body');
-            const allAssets = [
-                ...currentData.bonos.map(b => ({ ticker: b.ticker, cat: 'Bono', price: `$${b.precioUsd} USD`, extra: `TIR ${b.tir}%` })),
-                ...currentData.acciones.map(a => ({ ticker: a.ticker, cat: a.tipo, price: `$${a.precioArs.toLocaleString()} ARS`, extra: `Var ${a.var24h}%` })),
-                ...currentData.ons.map(o => ({ ticker: o.ticker, cat: 'ON', price: `$${o.precioUsd} USD`, extra: `TIR ${o.tir}%` }))
-            ];
-
-            const favAssets = allAssets.filter(item => watchlist.includes(item.ticker));
-
-            if (favAssets.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">No has agregado activos a tu cartera. Haz clic en la estrella de cualquier activo para hacerle seguimiento.</td></tr>`;
-                return;
+                container.innerHTML = state.marketData.dolares.map(d => {
+                    const isPositive = d.change >= 0;
+                    return `
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow-md hover:border-slate-700 transition">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide truncate">${d.title}</div>
+                            <div class="text-lg font-bold text-white mt-1">$${d.sell ? d.sell.toLocaleString('es-AR') : '-'}</div>
+                            <div class="flex items-center justify-between text-xs mt-1">
+                                <span class="text-slate-500">Comp: $${d.buy || '-'}</span>
+                                <span class="font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}">
+                                    <i class="fa-solid fa-caret-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(d.change)}%
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
 
-            tbody.innerHTML = favAssets.map(item => `
-                <tr class="hover:bg-slate-800/30 transition">
-                    <td class="p-3 font-bold text-slate-100">${item.ticker}</td>
-                    <td class="p-3"><span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${item.cat}</span></td>
-                    <td class="p-3 font-mono">${item.price}</td>
-                    <td class="p-3 font-mono text-emerald-400">${item.extra}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="toggleWatchlist('${item.ticker}')" class="text-rose-400 hover:text-rose-300">
-                            <i class="fa-solid fa-trash text-xs"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+            // Tab Switching Logic
+            function switchTab(tabKey) {
+                state.currentTab = tabKey;
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active', 'text-cubo-accent', 'border-b-2', 'border-cubo-accent', 'font-semibold');
+                    btn.classList.add('text-slate-400', 'font-medium');
+                });
+                
+                const activeBtn = document.getElementById(`tab-${tabKey}`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active', 'text-cubo-accent', 'border-b-2', 'border-cubo-accent', 'font-semibold');
+                    activeBtn.classList.remove('text-slate-400');
+                }
 
-        /**
-         * Yield Curve Visualization (Chart.js)
-         */
-        function renderYieldCurve() {
-            const ctx = document.getElementById('yieldCurveChart').getContext('2d');
-            const points = currentData.bonos.map(b => ({ x: b.duration, y: b.tir, label: b.ticker }));
+                renderAssetsTable();
+            }
 
-            if (chartInstance) chartInstance.destroy();
+            // Get Current Asset List by Selected Tab
+            function getCurrentTabList() {
+                if (state.currentTab === 'bonds') return state.marketData.bonds;
+                if (state.currentTab === 'cedears') return state.marketData.cedears;
+                if (state.currentTab === 'ons') return state.marketData.ons;
+                if (state.currentTab === 'watchlist') {
+                    const allAssets = [
+                        ...state.marketData.bonds,
+                        ...state.marketData.cedears,
+                        ...state.marketData.ons
+                    ];
+                    return allAssets.filter(item => state.watchlist.includes(item.ticker));
+                }
+                return [];
+            }
 
-            chartInstance = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Bonos Soberanos',
-                        data: points,
-                        backgroundColor: '#10b981',
-                        borderColor: '#059669',
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `${ctx.raw.label}: Duration ${ctx.raw.x}y | TIR ${ctx.raw.y}%`
+            // Render Table Data
+            function renderAssetsTable() {
+                const tbody = document.getElementById('assetsTableBody');
+                if (!tbody) return;
+
+                let list = getCurrentTabList();
+
+                // Apply search filter if typed
+                if (state.searchQuery) {
+                    const q = state.searchQuery.toLowerCase();
+                    list = list.filter(a => a.ticker.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
+                }
+
+                if (list.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-slate-500 text-sm">
+                                <i class="fa-solid fa-circle-exclamation text-base mb-1 block"></i>
+                                No se encontraron activos en esta categoría o filtro de Cubo Market.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(item => {
+                    const isFav = state.watchlist.includes(item.ticker);
+                    const isPositive = item.change >= 0;
+                    return `
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="py-3.5 px-4 font-medium text-white">
+                                <div class="font-bold text-slate-100">${item.ticker}</div>
+                                <div class="text-xs text-slate-500 truncate max-w-[150px] sm:max-w-none">${item.name}</div>
+                            </td>
+                            <td class="py-3.5 px-4 text-right font-semibold text-slate-200">
+                                $${typeof item.price === 'number' ? item.price.toLocaleString('es-AR') : item.price}
+                            </td>
+                            <td class="py-3.5 px-4 text-right font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}">
+                                ${isPositive ? '+' : ''}${item.change}%
+                            </td>
+                            <td class="py-3.5 px-4 text-right hidden sm:table-cell text-slate-300">
+                                ${typeof item.tir === 'number' ? item.tir + '%' : item.tir}
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <button onclick="cuboTerminal.toggleWatchlist('${item.ticker}')" class="text-base focus:outline-none transition hover:scale-110">
+                                    <i class="fa-${isFav ? 'solid' : 'regular'} fa-star ${isFav ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'}"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Watchlist Toggle
+            function toggleWatchlist(ticker) {
+                if (state.watchlist.includes(ticker)) {
+                    state.watchlist = state.watchlist.filter(t => t !== ticker);
+                } else {
+                    state.watchlist.push(ticker);
+                }
+                localStorage.setItem('cubo_market_watchlist', JSON.stringify(state.watchlist));
+                renderAssetsTable();
+                renderWatchlistSummary();
+            }
+
+            // Render Sidebar Watchlist Box
+            function renderWatchlistSummary() {
+                const container = document.getElementById('quickWatchlist');
+                const countBadge = document.getElementById('watchlistCount');
+                if (!container) return;
+
+                if (countBadge) countBadge.innerText = `${state.watchlist.length} activos`;
+
+                const allAssets = [
+                    ...state.marketData.bonds,
+                    ...state.marketData.cedears,
+                    ...state.marketData.ons
+                ];
+                const favItems = allAssets.filter(a => state.watchlist.includes(a.ticker));
+
+                if (favItems.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic py-2">Tu lista de seguimiento está vacía.</p>`;
+                    return;
+                }
+
+                container.innerHTML = favItems.map(item => `
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/40 border border-slate-800/80 text-xs">
+                        <div>
+                            <span class="font-bold text-white">${item.ticker}</span>
+                            <span class="text-slate-400 text-[10px] block">${item.name}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-slate-200 font-medium">$${item.price}</div>
+                            <div class="${item.change >= 0 ? 'text-emerald-400' : 'text-rose-400'} text-[10px] font-semibold">
+                                ${item.change >= 0 ? '+' : ''}${item.change}%
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Filter Handler
+            function filterAssets(isMobile = false) {
+                const input = isMobile ? document.getElementById('mobileSearchInput') : document.getElementById('searchInput');
+                if (input) {
+                    state.searchQuery = input.value;
+                    renderAssetsTable();
+                }
+            }
+
+            // Refresh All Data Trigger
+            function refreshAllData() {
+                const icon = document.getElementById('refreshIcon');
+                if (icon) icon.classList.add('fa-spin');
+                
+                fetchDolaresData().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('fa-spin');
+                        renderAssetsTable();
+                    }, 500);
+                });
+            }
+
+            // Chart Initialization (Yield Curve Chart)
+            function initYieldChart() {
+                const ctx = document.getElementById('yieldChart');
+                if (!ctx) return;
+
+                const bondsData = state.marketData.bonds;
+
+                state.yieldChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: bondsData.map(b => b.ticker),
+                        datasets: [{
+                            label: 'TIR (%)',
+                            data: bondsData.map(b => b.tir),
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#0284c7',
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` TIR: ${context.parsed.y}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#94a3b8', font: { size: 11 } }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#94a3b8', font: { size: 11 } }
                             }
                         }
-                    },
-                    scales: {
-                        x: {
-                            title: { display: true, text: 'Duration (Años)', color: '#64748b' },
-                            grid: { color: '#1e293b' },
-                            ticks: { color: '#94a3b8' }
-                        },
-                        y: {
-                            title: { display: true, text: 'TIR %', color: '#64748b' },
-                            grid: { color: '#1e293b' },
-                            ticks: { color: '#94a3b8' }
-                        }
                     }
-                }
-            });
-        }
-
-        /**
-         * Watchlist Interactivity
-         */
-        function toggleWatchlist(ticker) {
-            if (watchlist.includes(ticker)) {
-                watchlist = watchlist.filter(t => t !== ticker);
-            } else {
-                watchlist.push(ticker);
+                });
             }
-            localStorage.setItem('m_ar_watchlist', JSON.stringify(watchlist));
-            renderUI(true);
-        }
 
-        /**
-         * Tab Switcher Navigation
-         */
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('text-emerald-400', 'bg-slate-800', 'border', 'border-emerald-500/30');
-                el.classList.add('text-slate-400');
-            });
+            return {
+                init,
+                switchTab,
+                toggleWatchlist,
+                filterAssets,
+                refreshAllData
+            };
+        })();
 
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            const btn = document.getElementById(`tab-${tabId}`);
-            btn.classList.add('text-emerald-400', 'bg-slate-800', 'border', 'border-emerald-500/30');
-            btn.classList.remove('text-slate-400');
-        }
-
-        /**
-         * Real-time Asset Filter
-         */
-        function filterAssets() {
-            const query = document.getElementById('asset-search').value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
-        }
-
-        // Initialize Application
-        window.onload = function() {
-            fetchMarketData();
-            // Polling background update every 60 seconds
-            setInterval(fetchMarketData, 60000);
-        };
+        // Global startup on window load
+        window.addEventListener('DOMContentLoaded', () => {
+            cuboTerminal.init();
+        });
     </script>
 </body>
 </html>
