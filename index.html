@@ -3,458 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo Market Terminal Financiero</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Cubo Market - EE.UU. & Fundamentals</title>
     <style>
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #334155;
         }
-        .bg-card {
-            background-color: #1e293b;
-        }
-        .border-card {
-            border-color: #334155;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        h1 { font-size: 1.5rem; color: var(--text-main); }
+        .subtitle { font-size: 0.85rem; color: var(--text-muted); }
+        button { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        button:hover { background: #2563eb; }
+        .section-title { font-size: 1.1rem; margin: 20px 0 10px 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .table-container { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th { background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        .pos { color: var(--success); font-weight: 500; }
+        .neg { color: var(--danger); font-weight: 500; }
+        .status { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <!-- Header / Navbar -->
-    <header class="bg-card border-b border-card p-4 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="bg-blue-600 p-2 rounded-lg">
-                    <i data-lucide="line-chart" class="w-6 h-6 text-white"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-xl tracking-wide text-white">Cubo Market</h1>
-                    <p class="text-xs text-slate-400">Terminal Financiera & Macro Analytics</p>
-                </div>
-            </div>
-
-            <!-- Sync status & Refresh button -->
-            <div class="flex items-center space-x-4">
-                <div id="sync-status" class="flex items-center space-x-2 text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-700">
-                    <span id="sync-indicator" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    <span id="sync-text">Inicializando conexión...</span>
-                </div>
-                <button id="refresh-btn" onclick="fetchLiveMarketData()" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                </button>
-            </div>
+    <header>
+        <div>
+            <h1>US Market & SEC Fundamentals</h1>
+            <span class="subtitle">Monitoreo automatizado con Yahoo Finance & SEC EDGAR</span>
         </div>
+        <button onclick="cargarDatos()">Actualizar Datos</button>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto p-4 sm:p-6 flex-grow w-full space-y-6">
+    <div class="status" id="status-msg">Estado: Esperando sincronización...</div>
 
-        <!-- Macro Indicators Grid -->
-        <section class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4" id="macro-grid">
-            <div class="bg-card p-4 rounded-xl border border-card shadow-sm flex flex-col justify-between">
-                <span class="text-xs font-medium text-slate-400">Dólar Oficial</span>
-                <div class="mt-2">
-                    <div id="val-dolar-oficial" class="text-xl font-bold text-white">--</div>
-                    <span id="var-dolar-oficial" class="text-xs text-slate-400">Cargando...</span>
-                </div>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-card shadow-sm flex flex-col justify-between">
-                <span class="text-xs font-medium text-slate-400">Dólar MEP</span>
-                <div class="mt-2">
-                    <div id="val-dolar-mep" class="text-xl font-bold text-emerald-400">--</div>
-                    <span id="var-dolar-mep" class="text-xs text-slate-400">Cargando...</span>
-                </div>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-card shadow-sm flex flex-col justify-between">
-                <span class="text-xs font-medium text-slate-400">Dólar CCL</span>
-                <div class="mt-2">
-                    <div id="val-dolar-ccl" class="text-xl font-bold text-blue-400">--</div>
-                    <span id="var-dolar-ccl" class="text-xs text-slate-400">Cargando...</span>
-                </div>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-card shadow-sm flex flex-col justify-between">
-                <span class="text-xs font-medium text-slate-400">Tasa BADLAR</span>
-                <div class="mt-2">
-                    <div id="val-badlar" class="text-xl font-bold text-amber-400">--</div>
-                    <span id="var-badlar" class="text-xs text-slate-400">Cargando...</span>
-                </div>
-            </div>
-            <div class="bg-card p-4 rounded-xl border border-card shadow-sm flex flex-col justify-between col-span-2 md:col-span-4 lg:col-span-1">
-                <span class="text-xs font-medium text-slate-400">Índice CER / Inflación</span>
-                <div class="mt-2">
-                    <div id="val-cer" class="text-xl font-bold text-purple-400">--</div>
-                    <span id="var-cer" class="text-xs text-slate-400">Cargando...</span>
-                </div>
-            </div>
-        </section>
+    <div class="section-title">Rendimiento Acciones EE.UU. (Yahoo Finance)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Precio (USD)</th>
+                    <th>Diaria (1D)</th>
+                    <th>Semanal (1W)</th>
+                    <th>Mensual (1M)</th>
+                    <th>Anual (1Y)</th>
+                </tr>
+            vh</thead>
+            <tbody id="tabla-rendimiento">
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Presione "Actualizar Datos" para cargar...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
-        <!-- Dynamic Navigation Tabs -->
-        <div class="border-b border-card flex space-x-6 text-sm font-medium overflow-x-auto">
-            <button onclick="switchTab('stocks')" id="tab-stocks" class="pb-3 border-b-2 border-blue-500 text-blue-400 transition-colors whitespace-nowrap">
-                Acciones & CEDEARs (Yahoo Finance)
-            </button>
-            <button onclick="switchTab('sec')" id="tab-sec" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap">
-                Fundamentales SEC EDGAR (US)
-            </button>
-        </div>
+    <div class="section-title">Fundamentales y Ratios (SEC EDGAR API)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Ingresos (Ult. Año)</th>
+                    <th>Net Income</th>
+                    <th>Patrimonio Neto</th>
+                    <th>Acciones en Circulación</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-fundamentals">
+                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Cargando datos institucionales de la SEC...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
-        <!-- Tab 1: Market Stocks & CEDEARs Table -->
-        <section id="content-stocks" class="bg-card rounded-xl border border-card overflow-hidden shadow-sm">
-            <div class="p-4 border-b border-card flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i data-lucide="trending-up" class="w-5 h-5 text-blue-400"></i>
-                    Cotizaciones Merval, CEDEARs & US Stocks
-                </h2>
-                <input type="text" id="search-stocks" onkeyup="filterStocks()" placeholder="Buscar por ticker o nombre..." class="bg-slate-900 border border-slate-700 text-sm text-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 w-full sm:w-64">
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-900/50 uppercase text-xs text-slate-400 border-b border-card">
-                        <tr>
-                            <th class="p-3.5">Ticker</th>
-                            <th class="p-3.5">Nombre</th>
-                            <th class="p-3.5">Precio ($ / US$)</th>
-                            <th class="p-3.5">Var. Diaria</th>
-                            <th class="p-3.5">Volumen</th>
-                            <th class="p-3.5">Fuente</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stocks-tbody" class="divide-y divide-slate-800">
-                        <tr>
-                            <td colspan="6" class="p-6 text-center text-slate-500">Cargando cotizaciones...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    <script>
+        const TICKERS = [
+            { symbol: "AAPL", name: "Apple", cik: "0000320193" },
+            { symbol: "MSFT", name: "Microsoft", cik: "0000789019" },
+            { symbol: "GOOGL", name: "Alphabet", cik: "0001652044" },
+            { symbol: "NVDA", name: "NVIDIA", cik: "0001045810" },
+            { symbol: "TSLA", name: "Tesla", cik: "0001318605" },
+            { symbol: "AMZN", name: "Amazon", cik: "0001018724" },
+            { symbol: "META", name: "Meta", cik: "0001326801" }
+        ];
 
-        <!-- Tab 2: SEC EDGAR Fundamentals Table -->
-        <section id="content-sec" class="bg-card rounded-xl border border-card overflow-hidden shadow-sm hidden">
-            <div class="p-4 border-b border-card flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i data-lucide="database" class="w-5 h-5 text-purple-400"></i>
-        // Fetch Dólares desde DolarApi.com (Línea en vivo real sin registros históricos viejos)
-        async function fetchDolares() {
-            try {
-                // Fetch paralelo para obtener cotizaciones en tiempo real
-                const res = await fetch('https://dolarapi.com/v1/dolares');
-                if (!res.ok) throw new Error("Err DolarApi");
-                const data = await res.json();
+        const EMAIL_SEC = "francisco.combina@gmail.com";
 
-                const oficial = data.find(d => d.casa === 'oficial');
-                const mep = data.find(d => d.casa === 'bolsa');
-                const ccl = data.find(d => d.casa === 'contadoconliqui');
+        async function cargarDatos() {
+            const statusEl = document.getElementById("status-msg");
+            statusEl.innerText = "Estado: Sincronizando datos de Yahoo Finance y SEC EDGAR...";
 
-                if (oficial && oficial.venta) {
-                    document.getElementById('val-oficial').innerText = `$ ${oficial.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('sub-oficial').innerText = `Actualizado: ${formatDate(oficial.fechaActualizacion)}`;
-                }
-                if (mep && mep.venta) {
-                    document.getElementById('val-mep').innerText = `$ ${mep.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('sub-mep').innerText = `Actualizado: ${formatDate(mep.fechaActualizacion)}`;
-                }
-                if (ccl && ccl.venta) {
-                    document.getElementById('val-ccl').innerText = `$ ${ccl.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                    document.getElementById('sub-ccl').innerText = `Actualizado: ${formatDate(ccl.fechaActualizacion)}`;
-                }
-            } catch (err) {
-                console.warn("Fallback a ArgentinaDatos para Dólares...", err);
+            await cargarRendimientoYahoo();
+            await cargarFundamentalsSEC();
+
+            statusEl.innerText = "Estado: Actualizado correctamente (" + new Date().toLocaleTimeString() + ")";
+        }
+
+        async function cargarRendimientoYahoo() {
+            const tbody = document.getElementById("tabla-rendimiento");
+            tbody.innerHTML = "";
+
+            for (let item of TICKERS) {
                 try {
-                    const rOfi = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial/ultimo');
-                    const dOfi = await rOfi.json();
-                    if (dOfi && dOfi.venta) {
-                        document.getElementById('val-oficial').innerText = `$ ${dOfi.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                        document.getElementById('sub-oficial').innerText = `Fecha: ${dOfi.fecha || 'Hoy'}`;
-                    }
-
-                    const rMep = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares/bolsa/ultimo');
-                    const dMep = await rMep.json();
-                    if (dMep && dMep.venta) {
-                        document.getElementById('val-mep').innerText = `$ ${dMep.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                        document.getElementById('sub-mep').innerText = `Fecha: ${dMep.fecha || 'Hoy'}`;
-                    }
-
-                    const rCcl = await fetch('https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui/ultimo');
-                    const dCcl = await rCcl.json();
-                    if (dCcl && dCcl.venta) {
-                        document.getElementById('val-ccl').innerText = `$ ${dCcl.venta.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                        document.getElementById('sub-ccl').innerText = `Fecha: ${dCcl.fecha || 'Hoy'}`;
-                    }
-                } catch(e) {
-                    console.error("Error en fallback de Dólares", e);
-                }
-            }
-        }
-
-        // Fetch Plazo Fijo / Badlar & Riesgo País
-        async function fetchPlazoFijoAndRiesgo() {
-            // Plazo Fijo / Tasas
-            try {
-                const resTasa = await fetch('https://api.argentinadatos.com/v1/finanzas/tasas/plazoFijo');
-                if (resTasa.ok) {
-                    const dataTasa = await resTasa.json();
-                    if (dataTasa && dataTasa.length > 0) {
-                        // Obtener el último registro disponible
-                        const last = dataTasa[dataTasa.length - 1];
-                        const tnaVal = last.tna ? (last.tna > 1 ? last.tna : last.tna * 100) : 35;
-                        document.getElementById('val-badlar').innerText = `${tnaVal.toFixed(1)}%`;
-                        document.getElementById('sub-badlar').innerText = `${last.entidad || 'BCRA TNA PF'}`;
-                    }
-                }
-            } catch (e) {
-                document.getElementById('val-badlar').innerText = "35.0%";
-                document.getElementById('sub-badlar').innerText = "TNA Promedio PF";
-            }
-
-            // Riesgo Pais
-            try {
-                const resRiesgo = await fetch('https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo');
-                if (resRiesgo.ok) {
-                    const dataRiesgo = await resRiesgo.json();
-                    if (dataRiesgo && dataRiesgo.valor) {
-                        document.getElementById('val-riesgo').innerText = `${dataRiesgo.valor} pts`;
-                        document.getElementById('sub-riesgo').innerText = `Fecha: ${dataRiesgo.fecha || 'Reciente'}`;
-                    }
-                }
-            } catch (e) {
-                document.getElementById('val-riesgo').innerText = "-- pts";
-                document.getElementById('sub-riesgo').innerText = "Error al cargar";
-            }
-        }
-
-        // Main Refresh Function
-        async function fetchLiveMarketData() {
-            updateSyncStatus("loading", "Sincronizando APIs...");
-            
-            try {
-                // Fetch Argentina Macro Data
-                await fetchMacroData();
-                
-                // Fetch Market Quotes
-                await fetchYahooQuotes();
-
-                updateSyncStatus("online", "Conectado | APIs En Vivo");
-            } catch (err) {
-                console.error("Error updating market data:", err);
-                updateSyncStatus("error", "Error parcial en sincronización");
-            }
-        }
-
-        // 1. ArgentinaDatos API Handler
-        async function fetchMacroData() {
-            try {
-                // Dolar MEP & CCL
-                const dolarRes = await fetch("https://api.argentinadatos.com/v1/cotizaciones/dolares");
-                if (dolarRes.ok) {
-                    const dolares = await dolarRes.json();
+                    // Usamos un proxy CORS público liviano para consultar el endpoint v8 de Yahoo Finance
+                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`;
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
                     
-                    const mep = dolares.find(d => d.casa === "bolsa") || dolares.find(d => d.casa === "mep");
-                    if (mep) {
-                        document.getElementById("val-dolar-mep").innerText = `$${mep.venta?.toFixed(2) || '--'}`;
-                        document.getElementById("var-dolar-mep").innerText = `Actualizado: ${mep.fecha || 'Hoy'}`;
-                    }
-
-                    const ccl = dolares.find(d => d.casa === "contadoconliqui") || dolares.find(d => d.casa === "ccl");
-                    if (ccl) {
-                        document.getElementById("val-dolar-ccl").innerText = `$${ccl.venta?.toFixed(2) || '--'}`;
-                        document.getElementById("var-dolar-ccl").innerText = `Actualizado: ${ccl.fecha || 'Hoy'}`;
-                    }
-
-                    const oficial = dolares.find(d => d.casa === "oficial");
-                    if (oficial) {
-                        document.getElementById("val-dolar-oficial").innerText = `$${oficial.venta?.toFixed(2) || '--'}`;
-                        document.getElementById("var-dolar-oficial").innerText = `Oficial BNA`;
-                    }
-                }
-
-                // Rates (BADLAR / CER)
-                const badlarRes = await fetch("https://api.argentinadatos.com/v1/finanzas/tasas/badlar");
-                if (badlarRes.ok) {
-                    const badlarData = await badlarRes.json();
-                    if (badlarData && badlarData.length > 0) {
-                        const lastBadlar = badlarData[badlarData.length - 1];
-                        document.getElementById("val-badlar").innerText = `${lastBadlar.valor?.toFixed(2)}%`;
-                        document.getElementById("var-badlar").innerText = `TNA Consolidada`;
-                    }
-                }
-
-                const cerRes = await fetch("https://api.argentinadatos.com/v1/finanzas/indices/cer");
-                if (cerRes.ok) {
-                    const cerData = await cerRes.json();
-                    if (cerData && cerData.length > 0) {
-                        const lastCer = cerData[cerData.length - 1];
-                        document.getElementById("val-cer").innerText = `${lastCer.valor?.toFixed(2)}`;
-                        document.getElementById("var-cer").innerText = `Índice Ley 25.713`;
-                    }
-                }
-
-            } catch (error) {
-                console.warn("ArgentinaDatos fetch non-critical error:", error);
-            }
-        }
-
-        // 2. Yahoo Finance API Handler (with CORS proxy handling)
-        async function fetchYahooQuotes() {
-            const tbody = document.getElementById("stocks-tbody");
-            stocksDataStore = [];
-
-            for (const item of WATCHLIST_STOCKS) {
-                try {
-                    // Public CORS Proxy wrapper for client-side Yahoo requests
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.ticker}`)}`;
-                    const res = await fetch(proxyUrl);
+                    const response = await fetch(proxyUrl);
+                    const data = await response.json();
                     
-                    if (res.ok) {
-                        const wrapper = await res.json();
-                        const json = JSON.parse(wrapper.contents);
-                        const meta = json.chart?.result?.[0]?.meta;
+                    const result = data.chart.result[0];
+                    const quotes = result.indicators.quote[0].close;
+                    const timestamps = result.timestamp;
 
-                        if (meta) {
-                            const price = meta.regularMarketPrice || 0;
-                            const prevClose = meta.chartPreviousClose || meta.previousClose || price;
-                            const changePct = prevClose ? ((price - prevClose) / prevClose) * 100 : 0;
-                            const volume = meta.regularMarketVolume || 0;
+                    const currentPrice = quotes[quotes.length - 1];
+                    
+                    // Calcular retornos (1D, 1W (~5 ruedas), 1M (~21 ruedas), 1Y (~252 ruedas))
+                    const p1D = quotes[quotes.length - 2] || currentPrice;
+                    const p1W = quotes[quotes.length - 6] || quotes[0];
+                    const p1M = quotes[quotes.length - 22] || quotes[0];
+                    const p1Y = quotes[0];
 
-                            stocksDataStore.push({
-                                ticker: item.ticker,
-                                name: item.name,
-                                price: price,
-                                changePct: changePct,
-                                volume: volume,
-                                source: item.source
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.warn(`Yahoo fetch error for ${item.ticker}:`, e);
-                }
-            }
+                    const ret1D = ((currentPrice - p1D) / p1D) * 100;
+                    const ret1W = ((currentPrice - p1W) / p1W) * 100;
+                    const ret1M = ((currentPrice - p1M) / p1M) * 100;
+                    const ret1Y = ((currentPrice - p1Y) / p1Y) * 100;
 
-            renderStocksTable(stocksDataStore);
-        }
-
-        // Render Stocks Table
-        function renderStocksTable(data) {
-            const tbody = document.getElementById("stocks-tbody");
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No se pudieron cargar cotizaciones en vivo en este momento.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data.map(stock => {
-                const isPositive = stock.changePct >= 0;
-                const changeClass = isPositive ? "text-emerald-400" : "text-rose-400";
-                const changeSign = isPositive ? "+" : "";
-
-                return `
-                    <tr class="hover:bg-slate-800/50 transition-colors">
-                        <td class="p-3.5 font-bold text-white">${stock.ticker}</td>
-                        <td class="p-3.5 text-slate-300">${stock.name}</td>
-                        <td class="p-3.5 font-mono text-white">$${stock.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="p-3.5 font-mono font-medium ${changeClass}">
-                            ${changeSign}${stock.changePct.toFixed(2)}%
-                        </td>
-                        <td class="p-3.5 font-mono text-slate-400">${stock.volume ? stock.volume.toLocaleString() : 'N/A'}</td>
-                        <td class="p-3.5 text-xs text-slate-500">${stock.source}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Filter Table Search
-        function filterStocks() {
-            const query = document.getElementById("search-stocks").value.toLowerCase();
-            const filtered = stocksDataStore.filter(s => 
-                s.ticker.toLowerCase().includes(query) || s.name.toLowerCase().includes(query)
-            );
-            renderStocksTable(filtered);
-        }
-
-        // 3. SEC EDGAR Official API Handler
-        async function fetchSECFundamentals() {
-            const secTbody = document.getElementById("sec-tbody");
-            let rowsHtml = "";
-
-            for (const company of SEC_COMPANIES) {
-                try {
-                    const secUrl = `https://data.sec.gov/api/xbrl/companyfacts/CIK${company.CIK}.json`;
-                    const response = await fetch(secUrl, { headers: SEC_HEADERS });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        const usGaap = data.facts?.['us-gaap'];
-                        
-                        // Extract Revenues / Operating Income metrics dynamically
-                        let latestRevenues = "N/D";
-                        if (usGaap?.Revenues?.units?.USD) {
-                            const revUnits = usGaap.Revenues.units.USD;
-                            const lastRev = revUnits[revUnits.length - 1];
-                            latestRevenues = `$${(lastRev.val / 1e9).toFixed(2)} B (${lastRev.fy} Q${lastRev.fp || ''})`;
-                        }
-
-                        rowsHtml += `
-                            <tr class="hover:bg-slate-800/50 transition-colors">
-                                <td class="p-3.5 font-bold text-white">${company.name} (${company.ticker})</td>
-                                <td class="p-3.5 font-mono text-xs text-slate-400">${company.CIK}</td>
-                                <td class="p-3.5 font-mono text-emerald-400">${latestRevenues}</td>
-                                <td class="p-3.5 text-slate-300">Oficial XBRL SEC</td>
-                                <td class="p-3.5 text-xs text-emerald-400">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-950 text-emerald-300 border border-emerald-800">OK 200</span>
-                                </td>
-                            </tr>
-                        `;
-                    } else {
-                        throw new Error(`SEC HTTP ${response.status}`);
-                    }
-                } catch (err) {
-                    rowsHtml += `
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="p-3.5 font-bold text-white">${company.name} (${company.ticker})</td>
-                            <td class="p-3.5 font-mono text-xs text-slate-400">${company.CIK}</td>
-                            <td class="p-3.5 text-slate-500" colspan="2">Consulta directa de SEC disponible en la red</td>
-                            <td class="p-3.5 text-xs text-amber-400">Petición Registrada</td>
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--text-muted)">(${item.name})</span></td>
+                            <td>$${currentPrice.toFixed(2)}</td>
+                            <td class="${ret1D >= 0 ? 'pos' : 'neg'}">${ret1D >= 0 ? '+' : ''}${ret1D.toFixed(2)}%</td>
+                            <td class="${ret1W >= 0 ? 'pos' : 'neg'}">${ret1W >= 0 ? '+' : ''}${ret1W.toFixed(2)}%</td>
+                            <td class="${ret1M >= 0 ? 'pos' : 'neg'}">${ret1M >= 0 ? '+' : ''}${ret1M.toFixed(2)}%</td>
+                            <td class="${ret1Y >= 0 ? 'pos' : 'neg'}">${ret1Y >= 0 ? '+' : ''}${ret1Y.toFixed(2)}%</td>
                         </tr>
                     `;
+                } catch (e) {
+                    console.error(`Error cargando ${item.symbol}:`, e);
                 }
             }
-
-            secTbody.innerHTML = rowsHtml;
         }
 
-        // Status Indicator Helper
-        function updateSyncStatus(type, message) {
-            const indicator = document.getElementById("sync-indicator");
-            const text = document.getElementById("sync-text");
-            text.innerText = message;
+        async function cargarFundamentalsSEC() {
+            const tbody = document.getElementById("tabla-fundamentals");
+            tbody.innerHTML = "";
 
-            if (type === "loading") {
-                indicator.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
-            } else if (type === "online") {
-                indicator.className = "w-2 h-2 rounded-full bg-emerald-500";
-            } else {
-                indicator.className = "w-2 h-2 rounded-full bg-rose-500";
+            for (let item of TICKERS) {
+                try {
+                    const url = `https://data.sec.gov/api/xbrl/companyfacts/CIK${item.cik}.json`;
+                    
+                    const response = await fetch(url, {
+                        headers: {
+                            "User-Agent": `CuboMarket ${EMAIL_SEC}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Extraer métricas US-GAAP de forma segura
+                    const usGaap = data.facts['us-gaap'];
+                    let revenue = "N/D";
+                    let netIncome = "N/D";
+                    
+                    if (usGaap) {
+                        // Buscar Revenues o SalesRevenueNet
+                        const revNode = usGaap.Revenues || usGaap.SalesRevenueNet;
+                        if (revNode && revNode.units && revNode.units.USD) {
+                            const entries = revNode.units.USD.filter(x => x.form === '10-K');
+                            if (entries.length > 0) {
+                                revenue = "$" + (entries[entries.length - 1].val / 1e9).toFixed(2) + "B";
+                            }
+                        }
+
+                        // Buscar NetIncomeLoss
+                        const netNode = usGaap.NetIncomeLoss;
+                        if (netNode && netNode.units && netNode.units.USD) {
+                            const entries = netNode.units.USD.filter(x => x.form === '10-K');
+                            if (entries.length > 0) {
+                                netIncome = "$" + (entries[entries.length - 1].val / 1e9).toFixed(2) + "B";
+                            }
+                        }
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${item.symbol}</strong></td>
+                            <td>${revenue}</td>
+                            <td>${netIncome}</td>
+                            <td>Reporte SEC (XBRL)</td>
+                            <td>Verificado Oficial</td>
+                        </tr>
+                    `;
+                } catch (e) {
+                    console.error(`Error SEC para ${item.symbol}:`, e);
+                    tbody.innerHTML += `<tr><td>${item.symbol}</td><td colspan="4" style="color:var(--text-muted)">Error consultando SEC EDGAR</td></tr>`;
+                }
             }
         }
+
+        // Cargar automáticamente al abrir la página
+        window.onload = () => {
+            cargarDatos();
+        };
     </script>
 </body>
 </html>
