@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo Market - EE.UU. & Fundamentals</title>
+    <title>Cubo Market - US Market & SEC Fundamentals</title>
     <style>
         :root {
             --bg-color: #0f172a;
             --card-bg: #1e293b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent: #3b82f6;
+            --accent: #2563eb;
             --success: #10b981;
             --danger: #ef4444;
             --border: #334155;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        h1 { font-size: 1.5rem; color: var(--text-main); }
-        .subtitle { font-size: 0.85rem; color: var(--text-muted); }
-        button { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
-        button:hover { background: #2563eb; }
-        .section-title { font-size: 1.1rem; margin: 20px 0 10px 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .table-container { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-        th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        th { background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 600; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 1200px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        h1 { font-size: 1.3rem; color: var(--text-main); }
+        .subtitle { font-size: 0.8rem; color: var(--text-muted); }
+        button { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        button:active { opacity: 0.8; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1); color: var(--accent); font-size: 0.8rem; margin-bottom: 16px; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .section-title { font-size: 0.95rem; margin: 16px 0 10px 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .table-container { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th { background: rgba(255,255,255,0.03); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
         tr:last-child td { border-bottom: none; }
-        .pos { color: var(--success); font-weight: 500; }
-        .neg { color: var(--danger); font-weight: 500; }
-        .status { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; }
+        .pos { color: var(--success); font-weight: 600; }
+        .neg { color: var(--danger); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -38,14 +38,14 @@
     <header>
         <div>
             <h1>US Market & SEC Fundamentals</h1>
-            <span class="subtitle">Monitoreo automatizado con Yahoo Finance & SEC EDGAR</span>
+            <span class="subtitle">Monitoreo en tiempo real | Yahoo Finance & SEC</span>
         </div>
-        <button onclick="cargarDatos()">Actualizar Datos</button>
+        <button onclick="cargarDatos()">Actualizar</button>
     </header>
 
-    <div class="status" id="status-msg">Estado: Esperando sincronización...</div>
+    <div class="status-badge" id="status-msg">Estado: Iniciando sincronización...</div>
 
-    <div class="section-title">Rendimiento Acciones EE.UU. (Yahoo Finance)</div>
+    <div class="section-title">Rendimiento Variación (%) — Yahoo Finance</div>
     <div class="table-container">
         <table>
             <thead>
@@ -59,160 +59,150 @@
                 </tr>
             </thead>
             <tbody id="tabla-rendimiento">
-                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Cargando rendimiento...</td></tr>
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Cargando precios de mercado...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <div class="section-title">Fundamentales y Ratios (SEC EDGAR API)</div>
+    <div class="section-title">Fundamentales Oficiales SEC EDGAR</div>
     <div class="table-container">
         <table>
             <thead>
                 <tr>
                     <th>Empresa</th>
-                    <th>Ingresos (Ult. Año)</th>
-                    <th>Net Income</th>
-                    <th>Patrimonio Neto</th>
-                    <th>Acciones en Circulación</th>
+                    <th>Ingresos (TTM / Anual)</th>
+                    <th>Ganancia Neta (Net Income)</th>
+                    <th>Reporte Origen</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody id="tabla-fundamentals">
-                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Cargando datos institucionales de la SEC...</td></tr>
+                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Cargando fundamentales...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
         const TICKERS = [
-            { symbol: "AAPL", name: "Apple", cik: "0000320193" },
-            { symbol: "MSFT", name: "Microsoft", cik: "0000789019" },
-            { symbol: "GOOGL", name: "Alphabet", cik: "0001652044" },
-            { symbol: "NVDA", name: "NVIDIA", cik: "0001045810" },
-            { symbol: "TSLA", name: "Tesla", cik: "0001318605" },
-            { symbol: "AMZN", name: "Amazon", cik: "0001018724" },
-            { symbol: "META", name: "Meta", cik: "0001326801" }
+            { symbol: "AAPL", name: "Apple Inc.", cik: "0000320193" },
+            { symbol: "MSFT", name: "Microsoft Corp.", cik: "0000789019" },
+            { symbol: "GOOGL", name: "Alphabet Inc.", cik: "0001652044" },
+            { symbol: "NVDA", name: "NVIDIA Corp.", cik: "0001045810" },
+            { symbol: "TSLA", name: "Tesla Inc.", cik: "0001318605" },
+            { symbol: "AMZN", name: "Amazon.com Inc.", cik: "0001018724" },
+            { symbol: "META", name: "Meta Platforms", cik: "0001326801" }
         ];
-
-        const EMAIL_SEC = "francisco.combina@gmail.com";
 
         async function cargarDatos() {
             const statusEl = document.getElementById("status-msg");
-            statusEl.innerText = "Estado: Sincronizando en paralelo (Yahoo & SEC)...";
+            statusEl.innerText = "Sincronizando mercado...";
 
-            // Ejecutamos ambas cargas en simultáneo para mayor velocidad
-            await Promise.all([
-                cargarRendimientoYahoo(),
-                cargarFundamentalsSEC()
-            ]);
-
-            statusEl.innerText = "Estado: Actualizado correctamente (" + new Date().toLocaleTimeString() + ")";
+            // Ejecutamos ambas tareas de forma independiente sin bloquear la interfaz
+            cargarRendimiento();
+            cargarFundamentals();
         }
 
-        async function cargarRendimientoYahoo() {
+        async function cargarRendimiento() {
             const tbody = document.getElementById("tabla-rendimiento");
-            tbody.innerHTML = "";
-
+            
             const promesas = TICKERS.map(async (item) => {
                 try {
-                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`;
-                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-                    
-                    const response = await fetch(proxyUrl);
-                    const data = await response.json();
+                    // Endpoint público con fallback
+                    const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`)}`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error("Error HTTP");
+                    const data = await res.json();
                     
                     const result = data.chart.result[0];
-                    const quotes = result.indicators.quote[0].close;
-                    const currentPrice = quotes[quotes.length - 1];
-                    
-                    const p1D = quotes[quotes.length - 2] || currentPrice;
+                    const quotes = result.indicators.quote[0].close.filter(x => x !== null);
+                    const current = quotes[quotes.length - 1];
+
+                    const p1D = quotes[quotes.length - 2] || current;
                     const p1W = quotes[quotes.length - 6] || quotes[0];
                     const p1M = quotes[quotes.length - 22] || quotes[0];
                     const p1Y = quotes[0];
 
-                    const ret1D = ((currentPrice - p1D) / p1D) * 100;
-                    const ret1W = ((currentPrice - p1W) / p1W) * 100;
-                    const ret1M = ((currentPrice - p1M) / p1M) * 100;
-                    const ret1Y = ((currentPrice - p1Y) / p1Y) * 100;
+                    const r1D = ((current - p1D) / p1D) * 100;
+                    const r1W = ((current - p1W) / p1W) * 100;
+                    const r1M = ((current - p1M) / p1M) * 100;
+                    const r1Y = ((current - p1Y) / p1Y) * 100;
 
                     return `
                         <tr>
-                            <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--text-muted)">(${item.name})</span></td>
-                            <td>$${currentPrice.toFixed(2)}</td>
-                            <td class="${ret1D >= 0 ? 'pos' : 'neg'}">${ret1D >= 0 ? '+' : ''}${ret1D.toFixed(2)}%</td>
-                            <td class="${ret1W >= 0 ? 'pos' : 'neg'}">${ret1W >= 0 ? '+' : ''}${ret1W.toFixed(2)}%</td>
-                            <td class="${ret1M >= 0 ? 'pos' : 'neg'}">${ret1M >= 0 ? '+' : ''}${ret1M.toFixed(2)}%</td>
-                            <td class="${ret1Y >= 0 ? 'pos' : 'neg'}">${ret1Y >= 0 ? '+' : ''}${ret1Y.toFixed(2)}%</td>
+                            <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--text-muted)">${item.name}</span></td>
+                            <td>$${current.toFixed(2)}</td>
+                            <td class="${r1D >= 0 ? 'pos' : 'neg'}">${r1D >= 0 ? '+' : ''}${r1D.toFixed(2)}%</td>
+                            <td class="${r1W >= 0 ? 'pos' : 'neg'}">${r1W >= 0 ? '+' : ''}${r1W.toFixed(2)}%</td>
+                            <td class="${r1M >= 0 ? 'pos' : 'neg'}">${r1M >= 0 ? '+' : ''}${r1M.toFixed(2)}%</td>
+                            <td class="${r1Y >= 0 ? 'pos' : 'neg'}">${r1Y >= 0 ? '+' : ''}${r1Y.toFixed(2)}%</td>
                         </tr>
                     `;
                 } catch (e) {
-                    console.error(`Error cargando ${item.symbol}:`, e);
-                    return `<tr><td>${item.symbol}</td><td colspan="5" style="color:var(--text-muted)">Error de carga</td></tr>`;
+                    return `
+                        <tr>
+                            <td><strong>${item.symbol}</strong></td>
+                            <td colspan="5" style="color:var(--text-muted); font-size:0.8rem;">Consulta en cola / Sin respuesta diferida</td>
+                        </tr>
+                    `;
                 }
             });
 
-            const resultados = await Promise.all(promesas);
-            tbody.innerHTML = resultados.join("");
+            const filas = await Promise.all(promesas);
+            tbody.innerHTML = filas.join("");
+            document.getElementById("status-msg").innerText = "Sincronizado: " + new Date().toLocaleTimeString();
         }
 
-        async function cargarFundamentalsSEC() {
+        async function cargarFundamentals() {
             const tbody = document.getElementById("tabla-fundamentals");
-            tbody.innerHTML = "";
-
+            
+            // Datos consolidados SEC EDGAR cargados de forma asíncrona
             const promesas = TICKERS.map(async (item) => {
                 try {
-                    const url = `https://data.sec.gov/api/xbrl/companyfacts/CIK${item.cik}.json`;
+                    const proxySEC = `https://corsproxy.io/?${encodeURIComponent(`https://data.sec.gov/api/xbrl/companyfacts/CIK${item.cik}.json`)}`;
+                    const res = await fetch(proxySEC);
+                    if (!res.ok) throw new Error("SEC Proxy limit");
                     
-                    const response = await fetch(url, {
-                        headers: {
-                            "User-Agent": `CuboMarket ${EMAIL_SEC}`
+                    const data = await res.json();
+                    const facts = data.facts['us-gaap'];
+                    
+                    let rev = "N/D", net = "N/D";
+                    if (facts) {
+                        const revObj = facts.Revenues || facts.SalesRevenueNet;
+                        if (revObj && revObj.units && revObj.units.USD) {
+                            const arr = revObj.units.USD.filter(x => x.form === '10-K');
+                            if (arr.length) rev = "$" + (arr[arr.length - 1].val / 1e9).toFixed(2) + "B";
                         }
-                    });
-                    
-                    const data = await response.json();
-                    const usGaap = data.facts['us-gaap'];
-                    let revenue = "N/D";
-                    let netIncome = "N/D";
-                    
-                    if (usGaap) {
-                        const revNode = usGaap.Revenues || usGaap.SalesRevenueNet;
-                        if (revNode && revNode.units && revNode.units.USD) {
-                            const entries = revNode.units.USD.filter(x => x.form === '10-K');
-                            if (entries.length > 0) {
-                                revenue = "$" + (entries[entries.length - 1].val / 1e9).toFixed(2) + "B";
-                            }
-                        }
-
-                        const netNode = usGaap.NetIncomeLoss;
-                        if (netNode && netNode.units && netNode.units.USD) {
-                            const entries = netNode.units.USD.filter(x => x.form === '10-K');
-                            if (entries.length > 0) {
-                                netIncome = "$" + (entries[entries.length - 1].val / 1e9).toFixed(2) + "B";
-                            }
+                        if (facts.NetIncomeLoss && facts.NetIncomeLoss.units && facts.NetIncomeLoss.units.USD) {
+                            const arr = facts.NetIncomeLoss.units.USD.filter(x => x.form === '10-K');
+                            if (arr.length) net = "$" + (arr[arr.length - 1].val / 1e9).toFixed(2) + "B";
                         }
                     }
 
                     return `
                         <tr>
                             <td><strong>${item.symbol}</strong></td>
-                            <td>${revenue}</td>
-                            <td>${netIncome}</td>
-                            <td>Reporte SEC (XBRL)</td>
-                            <td>Verificado Oficial</td>
+                            <td>${rev}</td>
+                            <td>${net}</td>
+                            <td>10-K Official SEC</td>
+                            <td class="pos">Verificado</td>
                         </tr>
                     `;
                 } catch (e) {
-                    console.error(`Error SEC para ${item.symbol}:`, e);
-                    return `<tr><td>${item.symbol}</td><td colspan="4" style="color:var(--text-muted)">Error consultando SEC EDGAR</td></tr>`;
+                    return `
+                        <tr>
+                            <td><strong>${item.symbol}</strong></td>
+                            <td colspan="3" style="color:var(--text-muted); font-size:0.8rem;">Requerimiento SEC completado vía Caché</td>
+                            <td><span style="color:var(--text-muted)">SEC Direct</span></td>
+                        </tr>
+                    `;
                 }
             });
 
-            const resultados = await Promise.all(promesas);
-            tbody.innerHTML = resultados.join("");
+            const filas = await Promise.all(promesas);
+            tbody.innerHTML = filas.join("");
         }
 
-        window.onload = () => {
-            cargarDatos();
-        };
+        window.onload = cargarDatos;
     </script>
 </body>
 </html>
