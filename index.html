@@ -57,9 +57,9 @@
                     <th>Mensual (1M)</th>
                     <th>Anual (1Y)</th>
                 </tr>
-            vh</thead>
+            </thead>
             <tbody id="tabla-rendimiento">
-                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Presione "Actualizar Datos" para cargar...</td></tr>
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Cargando rendimiento...</td></tr>
             </tbody>
         </table>
     </div>
@@ -97,10 +97,13 @@
 
         async function cargarDatos() {
             const statusEl = document.getElementById("status-msg");
-            statusEl.innerText = "Estado: Sincronizando datos de Yahoo Finance y SEC EDGAR...";
+            statusEl.innerText = "Estado: Sincronizando en paralelo (Yahoo & SEC)...";
 
-            await cargarRendimientoYahoo();
-            await cargarFundamentalsSEC();
+            // Ejecutamos ambas cargas en simultáneo para mayor velocidad
+            await Promise.all([
+                cargarRendimientoYahoo(),
+                cargarFundamentalsSEC()
+            ]);
 
             statusEl.innerText = "Estado: Actualizado correctamente (" + new Date().toLocaleTimeString() + ")";
         }
@@ -109,9 +112,8 @@
             const tbody = document.getElementById("tabla-rendimiento");
             tbody.innerHTML = "";
 
-            for (let item of TICKERS) {
+            const promesas = TICKERS.map(async (item) => {
                 try {
-                    // Usamos un proxy CORS público liviano para consultar el endpoint v8 de Yahoo Finance
                     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`;
                     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
                     
@@ -120,11 +122,8 @@
                     
                     const result = data.chart.result[0];
                     const quotes = result.indicators.quote[0].close;
-                    const timestamps = result.timestamp;
-
                     const currentPrice = quotes[quotes.length - 1];
                     
-                    // Calcular retornos (1D, 1W (~5 ruedas), 1M (~21 ruedas), 1Y (~252 ruedas))
                     const p1D = quotes[quotes.length - 2] || currentPrice;
                     const p1W = quotes[quotes.length - 6] || quotes[0];
                     const p1M = quotes[quotes.length - 22] || quotes[0];
@@ -135,7 +134,7 @@
                     const ret1M = ((currentPrice - p1M) / p1M) * 100;
                     const ret1Y = ((currentPrice - p1Y) / p1Y) * 100;
 
-                    tbody.innerHTML += `
+                    return `
                         <tr>
                             <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--text-muted)">(${item.name})</span></td>
                             <td>$${currentPrice.toFixed(2)}</td>
@@ -147,15 +146,19 @@
                     `;
                 } catch (e) {
                     console.error(`Error cargando ${item.symbol}:`, e);
+                    return `<tr><td>${item.symbol}</td><td colspan="5" style="color:var(--text-muted)">Error de carga</td></tr>`;
                 }
-            }
+            });
+
+            const resultados = await Promise.all(promesas);
+            tbody.innerHTML = resultados.join("");
         }
 
         async function cargarFundamentalsSEC() {
             const tbody = document.getElementById("tabla-fundamentals");
             tbody.innerHTML = "";
 
-            for (let item of TICKERS) {
+            const promesas = TICKERS.map(async (item) => {
                 try {
                     const url = `https://data.sec.gov/api/xbrl/companyfacts/CIK${item.cik}.json`;
                     
@@ -166,14 +169,11 @@
                     });
                     
                     const data = await response.json();
-                    
-                    // Extraer métricas US-GAAP de forma segura
                     const usGaap = data.facts['us-gaap'];
                     let revenue = "N/D";
                     let netIncome = "N/D";
                     
                     if (usGaap) {
-                        // Buscar Revenues o SalesRevenueNet
                         const revNode = usGaap.Revenues || usGaap.SalesRevenueNet;
                         if (revNode && revNode.units && revNode.units.USD) {
                             const entries = revNode.units.USD.filter(x => x.form === '10-K');
@@ -182,7 +182,6 @@
                             }
                         }
 
-                        // Buscar NetIncomeLoss
                         const netNode = usGaap.NetIncomeLoss;
                         if (netNode && netNode.units && netNode.units.USD) {
                             const entries = netNode.units.USD.filter(x => x.form === '10-K');
@@ -192,7 +191,7 @@
                         }
                     }
 
-                    tbody.innerHTML += `
+                    return `
                         <tr>
                             <td><strong>${item.symbol}</strong></td>
                             <td>${revenue}</td>
@@ -203,12 +202,14 @@
                     `;
                 } catch (e) {
                     console.error(`Error SEC para ${item.symbol}:`, e);
-                    tbody.innerHTML += `<tr><td>${item.symbol}</td><td colspan="4" style="color:var(--text-muted)">Error consultando SEC EDGAR</td></tr>`;
+                    return `<tr><td>${item.symbol}</td><td colspan="4" style="color:var(--text-muted)">Error consultando SEC EDGAR</td></tr>`;
                 }
-            }
+            });
+
+            const resultados = await Promise.all(promesas);
+            tbody.innerHTML = resultados.join("");
         }
 
-        // Cargar automáticamente al abrir la página
         window.onload = () => {
             cargarDatos();
         };
