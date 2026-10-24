@@ -3,49 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo Market - US Market & SEC Fundamentals</title>
+    <title>Cubo Market - Variaciones US</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #2563eb;
-            --success: #10b981;
-            --danger: #ef4444;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --green: #10b981;
+            --red: #ef4444;
             --border: #334155;
+            --blue: #3b82f6;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 1200px; margin: 0 auto; }
+        body { background-color: var(--bg); color: var(--text); padding: 16px; max-width: 900px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-        h1 { font-size: 1.3rem; color: var(--text-main); }
-        .subtitle { font-size: 0.8rem; color: var(--text-muted); }
-        button { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
-        button:active { opacity: 0.8; }
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1); color: var(--accent); font-size: 0.8rem; margin-bottom: 16px; border: 1px solid rgba(59, 130, 246, 0.2); }
-        .section-title { font-size: 0.95rem; margin: 16px 0 10px 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-        .table-container { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 24px; }
+        h1 { font-size: 1.2rem; }
+        button { background: var(--blue); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .table-container { width: 100%; overflow-x: auto; background: var(--card); border-radius: 8px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-        th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        th { background: rgba(255,255,255,0.03); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; background: rgba(255,255,255,0.02); }
         tr:last-child td { border-bottom: none; }
-        .pos { color: var(--success); font-weight: 600; }
-        .neg { color: var(--danger); font-weight: 600; }
+        .pos { color: var(--green); font-weight: 600; }
+        .neg { color: var(--red); font-weight: 600; }
+        #status { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
     </style>
 </head>
 <body>
 
     <header>
-        <div>
-            <h1>US Market & SEC Fundamentals</h1>
-            <span class="subtitle">Monitoreo en tiempo real | Yahoo Finance & SEC</span>
-        </div>
-        <button onclick="cargarDatos()">Actualizar</button>
+        <h1>US Market — Variaciones (%)</h1>
+        <button onclick="cargarPrecios()">Actualizar</button>
     </header>
 
-    <div class="status-badge" id="status-msg">Estado: Iniciando sincronización...</div>
+    <div id="status">Cargando datos...</div>
 
-    <div class="section-title">Rendimiento Variación (%) — Yahoo Finance</div>
     <div class="table-container">
         <table>
             <thead>
@@ -58,63 +51,39 @@
                     <th>Anual (1Y)</th>
                 </tr>
             </thead>
-            <tbody id="tabla-rendimiento">
-                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Cargando precios de mercado...</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section-title">Fundamentales Oficiales SEC EDGAR</div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Empresa</th>
-                    <th>Ingresos (TTM / Anual)</th>
-                    <th>Ganancia Neta (Net Income)</th>
-                    <th>Reporte Origen</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-fundamentals">
-                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Cargando fundamentales...</td></tr>
+            <tbody id="tabla-body">
+                <tr><td colspan="6" style="text-align:center; color:var(--muted);">Cargando...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
         const TICKERS = [
-            { symbol: "AAPL", name: "Apple Inc.", cik: "0000320193" },
-            { symbol: "MSFT", name: "Microsoft Corp.", cik: "0000789019" },
-            { symbol: "GOOGL", name: "Alphabet Inc.", cik: "0001652044" },
-            { symbol: "NVDA", name: "NVIDIA Corp.", cik: "0001045810" },
-            { symbol: "TSLA", name: "Tesla Inc.", cik: "0001318605" },
-            { symbol: "AMZN", name: "Amazon.com Inc.", cik: "0001018724" },
-            { symbol: "META", name: "Meta Platforms", cik: "0001326801" }
+            { symbol: "AAPL", name: "Apple" },
+            { symbol: "MSFT", name: "Microsoft" },
+            { symbol: "GOOGL", name: "Alphabet" },
+            { symbol: "NVDA", name: "NVIDIA" },
+            { symbol: "TSLA", name: "Tesla" },
+            { symbol: "AMZN", name: "Amazon" },
+            { symbol: "META", name: "Meta" }
         ];
 
-        async function cargarDatos() {
-            const statusEl = document.getElementById("status-msg");
-            statusEl.innerText = "Sincronizando mercado...";
+        async function cargarPrecios() {
+            const status = document.getElementById("status");
+            const tbody = document.getElementById("tabla-body");
+            status.innerText = "Consultando Yahoo Finance...";
 
-            // Ejecutamos ambas tareas de forma independiente sin bloquear la interfaz
-            cargarRendimiento();
-            cargarFundamentals();
-        }
-
-        async function cargarRendimiento() {
-            const tbody = document.getElementById("tabla-rendimiento");
-            
             const promesas = TICKERS.map(async (item) => {
                 try {
-                    // Endpoint público con fallback
-                    const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`)}`;
+                    // Consulta limpia a Yahoo Finance a través de proxy sin bloqueo CORS
+                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=1y&interval=1d`;
+                    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                    
                     const res = await fetch(url);
-                    if (!res.ok) throw new Error("Error HTTP");
+                    if (!res.ok) throw new Error();
                     const data = await res.json();
                     
-                    const result = data.chart.result[0];
-                    const quotes = result.indicators.quote[0].close.filter(x => x !== null);
+                    const quotes = data.chart.result[0].indicators.quote[0].close.filter(x => x !== null);
                     const current = quotes[quotes.length - 1];
 
                     const p1D = quotes[quotes.length - 2] || current;
@@ -129,7 +98,7 @@
 
                     return `
                         <tr>
-                            <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--text-muted)">${item.name}</span></td>
+                            <td><strong>${item.symbol}</strong> <span style="font-size:0.75rem; color:var(--muted)">(${item.name})</span></td>
                             <td>$${current.toFixed(2)}</td>
                             <td class="${r1D >= 0 ? 'pos' : 'neg'}">${r1D >= 0 ? '+' : ''}${r1D.toFixed(2)}%</td>
                             <td class="${r1W >= 0 ? 'pos' : 'neg'}">${r1W >= 0 ? '+' : ''}${r1W.toFixed(2)}%</td>
@@ -138,71 +107,16 @@
                         </tr>
                     `;
                 } catch (e) {
-                    return `
-                        <tr>
-                            <td><strong>${item.symbol}</strong></td>
-                            <td colspan="5" style="color:var(--text-muted); font-size:0.8rem;">Consulta en cola / Sin respuesta diferida</td>
-                        </tr>
-                    `;
+                    return `<tr><td><strong>${item.symbol}</strong></td><td colspan="5" style="color:var(--muted)">Sin datos</td></tr>`;
                 }
             });
 
             const filas = await Promise.all(promesas);
             tbody.innerHTML = filas.join("");
-            document.getElementById("status-msg").innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+            status.innerText = "Última actualización: " + new Date().toLocaleTimeString();
         }
 
-        async function cargarFundamentals() {
-            const tbody = document.getElementById("tabla-fundamentals");
-            
-            // Datos consolidados SEC EDGAR cargados de forma asíncrona
-            const promesas = TICKERS.map(async (item) => {
-                try {
-                    const proxySEC = `https://corsproxy.io/?${encodeURIComponent(`https://data.sec.gov/api/xbrl/companyfacts/CIK${item.cik}.json`)}`;
-                    const res = await fetch(proxySEC);
-                    if (!res.ok) throw new Error("SEC Proxy limit");
-                    
-                    const data = await res.json();
-                    const facts = data.facts['us-gaap'];
-                    
-                    let rev = "N/D", net = "N/D";
-                    if (facts) {
-                        const revObj = facts.Revenues || facts.SalesRevenueNet;
-                        if (revObj && revObj.units && revObj.units.USD) {
-                            const arr = revObj.units.USD.filter(x => x.form === '10-K');
-                            if (arr.length) rev = "$" + (arr[arr.length - 1].val / 1e9).toFixed(2) + "B";
-                        }
-                        if (facts.NetIncomeLoss && facts.NetIncomeLoss.units && facts.NetIncomeLoss.units.USD) {
-                            const arr = facts.NetIncomeLoss.units.USD.filter(x => x.form === '10-K');
-                            if (arr.length) net = "$" + (arr[arr.length - 1].val / 1e9).toFixed(2) + "B";
-                        }
-                    }
-
-                    return `
-                        <tr>
-                            <td><strong>${item.symbol}</strong></td>
-                            <td>${rev}</td>
-                            <td>${net}</td>
-                            <td>10-K Official SEC</td>
-                            <td class="pos">Verificado</td>
-                        </tr>
-                    `;
-                } catch (e) {
-                    return `
-                        <tr>
-                            <td><strong>${item.symbol}</strong></td>
-                            <td colspan="3" style="color:var(--text-muted); font-size:0.8rem;">Requerimiento SEC completado vía Caché</td>
-                            <td><span style="color:var(--text-muted)">SEC Direct</span></td>
-                        </tr>
-                    `;
-                }
-            });
-
-            const filas = await Promise.all(promesas);
-            tbody.innerHTML = filas.join("");
-        }
-
-        window.onload = cargarDatos;
+        window.onload = cargarPrecios;
     </script>
 </body>
 </html>
