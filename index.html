@@ -3,42 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test API Yahoo</title>
-    <style>
-        body { background: #0f172a; color: #fff; font-family: sans-serif; padding: 20px; }
-        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
-        pre { background: #1e293b; padding: 15px; border-radius: 8px; margin-top: 15px; overflow-x: auto; font-size: 0.8rem; color: #38bdf8; max-height: 400px; }
-    </style>
-</head>
-<body>
-    <h2>Diagnóstico de Conexión Yahoo Finance</h2>
-    <p>Haz clic para probar la conexión con AAPL:</p>
-    <br>
-    <button onclick="probarConexion()">Probar Conexión API</button>
-    
-    <pre id="resultado">Esperando prueba...</pre>
-
+    <title>Francisco Combina — Dashboard & Historias</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-        async function probarConexion() {
-            const out = document.getElementById("resultado");
-            out.innerText = "Conectando...";
-
-            try {
-                const url = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL";
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                
-                const res = await fetch(proxyUrl);
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        cubo: {
+                            navy: '#0B132B',
+                            dark: '#1C2541',
+                            teal: '#3A506B',
+                            cyan: '#48E5C2',
+                            mint: '#A0D8C3',
+                            bg: '#070B19',
+                            card: '#131C35',
+                            accent: '#5BC0BE'
+                        }
+                    }
                 }
-                
-                const data = await res.json();
-                out.innerText = "¡CONEXIÓN EXITOSA!\n\n" + JSON.stringify(data, null, 2);
-            } catch (err) {
-                out.innerText = "ERROR DE CONEXIÓN:\n\n" + err.message + "\n\n(Es posible que tu red o el navegador bloqueen el proxy CORS en este dispositivo).";
             }
         }
     </script>
-</body>
-</html>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas para exportar la infografía a PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="bg-cubo-bg text-white font-sans antialiased min-h-screen pb-12 selection:bg-cubo-cyan selection:text-cubo-navy">
+
+    <!-- Header Principal (Desfijado/Normal) -->
+    <header class="bg-cubo-dark/80 backdrop-blur-md border-b border-white/10 relative">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-cubo-cyan to-cubo-accent p-2.5 rounded-xl text-cubo-navy font-black text-2xl tracking-tighter shadow-lg shadow-cubo-cyan/20">
+                    FC
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-cubo-cyan bg-clip-text text-transparent">FRANCISCO COMBINA</h1>
+                    <p class="text-xs text-cubo-cyan/80 font-medium font-mono">Terminal & Generador de Historias</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="sincronizarConSheet()" class="flex items-center gap-1.5 bg-cubo-teal/50 hover:bg-cubo-teal text-white px-3.5 py-2 rounded-xl text-xs font-bold transition border border-white/10 shadow-sm">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar Sheet
+                </button>
+                <button onclick="toggleConfigPanel()" class="flex items-center gap-1.5 bg-cubo-cyan text-cubo-navy hover:bg-cubo-accent px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md shadow-cubo-cyan/10">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Configuración URLs
+                </button>
+                <button onclick="abrirModalEdicion()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition border border-white/10">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i> Edición Manual
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+        <!-- PANEL DE CONFIGURACIÓN DE URLS DE GOOGLE SHEETS -->
+        <section id="panel-configuracion" class="bg-cubo-card border border-cubo-cyan/30 p-6 rounded-2xl shadow-2xl hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="p-2 bg-cubo-dark text-cubo-cyan rounded-xl border border-white/10"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i></span>
+                    <div>
+                        <h3 class="font-extrabold text-lg text-white">Configuración de Planillas (CSV)</h3>
+                        <p class="text-xs text-gray-400">Enlaces de solapas configurados.</p>
+                    </div>
+                </div>
+                <button onclick="toggleConfigPanel()" class="text-gray-400 hover:text-white font-bold text-sm">✕ Cerrar</button>
+            </div>
+
+            <div class="space-y-3 font-mono">
+                <div>
+                    <label class="block font-bold text-gray-300 text-xs mb-1">URL Hoja "Datos" (Principal)</label>
+                    <input type="text" id="cfg-sheet-url" class="w-full border border-white/10 p-2.5 rounded-xl text-xs bg-cubo-dark text-cubo-cyan focus:outline-none focus:border-cubo-cyan">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-300 text-xs mb-1">URL Hoja "Subas_EEUU" (Ganadores)</label>
+                    <input type="text" id="cfg-subas-url" class="w-full border border-white/10 p-2.5 rounded-xl text-xs bg-cubo-dark text-cubo-cyan focus:outline-none focus:border-cubo-cyan">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-300 text-xs mb-1">URL Hoja "Bajas_EEUU" (Perdedores)</label>
+                    <input type="text" id="cfg-bajas-url" class="w-full border border-white/10 p-2.5 rounded-xl text-xs bg-cubo-dark text-cubo-cyan focus:outline-none focus:border-cubo-cyan">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-300 text-xs mb-1">URL Hoja "Fundanentales" (Ratios)</label>
+                    <input type="text" id="cfg-fundamentales-url" class="w-full border border-white/10 p-2.5 rounded-xl text-xs bg-cubo-dark text-cubo-cyan focus:outline-none focus:border-cubo-cyan">
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-white/10 pt-4">
+                <span class="text-[11px] text-gray-400">Se guardan localmente para futuras sesiones.</span>
+                <button onclick="guardarSheetURLs()" class="bg-cubo-cyan text-cubo-navy hover:bg-cubo-accent px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow">
+                    <i data-lucide="save" class="w-4 h-4"></i> Guardar y Sincronizar
+                </button>
+            </div>
+        </section>
+
+        <!-- Estado de Conexión -->
+        <div class="bg-cubo-card/60 border border-white/10 p-4 rounded-2xl shadow-lg backdrop-blur-md flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="p-2 bg-cubo-dark text-cubo-cyan rounded-xl border border-white/10"><i data-lucide="activity" class="w-5 h-5"></i></span>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Origen de Datos</p>
+                    <p class="text-xs text-cubo-cyan font-medium font-mono mt-0.5">Sincronización exacta desde Google Sheets</p>
+                </div>
+            </div>
+            <span id="badge-estado" class="text-xs bg-emerald-500/10 text-emerald-400 font-bold px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Google Sheet Vinculado
+            </span>
+        </div>
+
+        <!-- 1. TARJETAS PRINCIPALES (MÉTRICAS CLAVE) -->
+        <section>
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-cubo-cyan"></i>
+                        Indicadores Principales de Mercado
+                    </h2>
+                    <p class="text-sm text-gray-400">Valores y porcentajes actualizados</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- S&P Merval USD -->
+                <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition">
+                    <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">S&P Merval en USD</span>
+                    <div class="text-2xl font-black text-white font-mono mb-2" id="val-merval-usd">$1.739</div>
+                    <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap font-mono">
+                        <span id="sem-merval-usd" class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">Sem: -0,8%</span>
+                        <span id="ytd-merval-usd" class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">YTD: -13,2%</span>
+                    </div>
+                </div>
+
+                <!-- SP500 -->
+                <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition">
+                    <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">S&P 500</span>
+                    <div class="text-2xl font-black text-white font-mono mb-2" id="val-sp500">$7.663</div>
+                    <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap font-mono">
+                        <span id="sem-sp500" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">Sem: +0,1%</span>
+                        <span id="ytd-sp500" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">YTD: +11,9%</span>
+                    </div>
+                </div>
+
+                <!-- Dólar MEP -->
+                <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition">
+                    <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">Dólar MEP</span>
+                    <div class="text-2xl font-black text-white font-mono mb-2" id="val-mep">$1.554</div>
+                    <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap font-mono">
+                        <span id="sem-mep" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">Sem: +0,7%</span>
+                        <span id="ytd-mep" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">YTD: +4,6%</span>
+                    </div>
+                </div>
+
+                <!-- Riesgo País -->
+                <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition border-l-4 border-l-cubo-cyan">
+                    <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">Riesgo País</span>
+                    <div class="text-2xl font-black text-white font-mono mb-2" id="val-riesgo">674</div>
+                    <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap font-mono">
+                        <span id="sem-riesgo" class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">Sem: -0,1%</span>
+                        <span id="ytd-riesgo" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">YTD: +18,0%</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. BLOQUE DE DIVISAS, CRIPTO & MERVAL ARS -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- S&P Merval ARS -->
+            <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg space-y-2">
+                <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">S&P Merval (ARS)</span>
+                    <span class="text-[10px] bg-cubo-cyan/10 text-cubo-cyan font-bold px-2 py-0.5 rounded-lg border border-cubo-cyan/20">Local</span>
+                </div>
+                <div class="pt-1">
+                    <span class="text-2xl font-black text-white font-mono" id="val-merval-ars">$2.848.945</span>
+                    <div class="flex gap-2 text-xs font-bold font-mono mt-2">
+                        <span class="text-emerald-400" id="merval-ars-sem">Sem: +0,7%</span>
+                        <span class="text-rose-400" id="merval-ars-ytd">YTD: -6,6%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dólar CCL & BTC -->
+            <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg space-y-3">
+                <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">CCL & Cripto</span>
+                    <span class="text-[10px] bg-cubo-cyan/10 text-cubo-cyan font-bold px-2 py-0.5 rounded-lg border border-cubo-cyan/20">Referencias</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-cubo-dark p-2.5 rounded-xl border border-white/5">
+                        <span class="text-[10px] text-gray-400 font-bold block">DÓLAR CCL</span>
+                        <span class="
