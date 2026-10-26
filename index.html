@@ -41,7 +41,7 @@
 </head>
 <body class="bg-cubo-bg text-white font-sans antialiased min-h-screen pb-12 selection:bg-cubo-cyan selection:text-cubo-navy">
 
-    <!-- Header Principal (Desfijado/Normal) -->
+    <!-- Header Principal -->
     <header class="bg-cubo-dark/80 backdrop-blur-md border-b border-white/10 relative">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
@@ -71,7 +71,7 @@
     <!-- Contenido Principal -->
     <main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
 
-        <!-- PANEL DE CONFIGURACIÓN DE URLS DE GOOGLE SHEETS -->
+        <!-- PANEL DE CONFIGURACIÓN DE URLS -->
         <section id="panel-configuracion" class="bg-cubo-card border border-cubo-cyan/30 p-6 rounded-2xl shadow-2xl hidden space-y-4">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <div class="flex items-center gap-2">
@@ -138,7 +138,6 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
                 <!-- S&P Merval USD -->
                 <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition">
                     <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">S&P Merval en USD</span>
@@ -148,7 +147,6 @@
                         <span id="ytd-merval-usd" class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20">YTD: -13,2%</span>
                     </div>
                 </div>
-
                 <!-- SP500 -->
                 <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition">
                     <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">S&P 500</span>
@@ -158,7 +156,6 @@
                         <span id="ytd-sp500" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">YTD: +11,9%</span>
                     </div>
                 </div>
-
                 <!-- Dólar MEP -->
                 <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition">
                     <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">Dólar MEP</span>
@@ -168,7 +165,6 @@
                         <span id="ytd-mep" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">YTD: +4,6%</span>
                     </div>
                 </div>
-
                 <!-- Riesgo País -->
                 <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg hover:border-cubo-cyan/30 transition border-l-4 border-l-cubo-cyan">
                     <span class="text-xs font-bold uppercase text-gray-400 block mb-1 tracking-wider">Riesgo País</span>
@@ -178,14 +174,11 @@
                         <span id="ytd-riesgo" class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">YTD: +18,0%</span>
                     </div>
                 </div>
-
             </div>
         </section>
 
         <!-- 2. BLOQUE DE DIVISAS, CRIPTO & MERVAL ARS -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- S&P Merval ARS -->
             <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg space-y-2">
                 <div class="flex justify-between items-center border-b border-white/10 pb-2">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">S&P Merval (ARS)</span>
@@ -200,7 +193,6 @@
                 </div>
             </div>
 
-            <!-- Dólar CCL & BTC -->
             <div class="bg-cubo-card p-5 rounded-2xl border border-white/10 shadow-lg space-y-3">
                 <div class="flex justify-between items-center border-b border-white/10 pb-2">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">CCL & Cripto</span>
@@ -209,4 +201,733 @@
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div class="bg-cubo-dark p-2.5 rounded-xl border border-white/5">
                         <span class="text-[10px] text-gray-400 font-bold block">DÓLAR CCL</span>
-                        <span class="
+                        <span class="font-black text-white font-mono text-sm" id="val-ccl">$1.638</span>
+                        <span class="text-[10px] text-emerald-400 font-mono font-bold block mt-0.5" id="ccl-sem">Sem: +1,1%</span>
+                    </div>
+                    <div class="bg-cubo-dark p-2.5 rounded-xl border border-white/5">
+                        <span class="text-[10px] text-gray-400 font-bold block">BTC</span>
+                        <span class="font-black text-white font-mono text-sm" id="val-btc">$81.086</span>
+                        <span class="text-[10px] text-rose-400 font-mono font-bold block mt-0.5" id="btc-sem">Sem: -0,9%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: ANÁLISIS FUNDAMENTAL (RATIOS CLAVE) -->
+        <section class="bg-cubo-card p-6 rounded-2xl border border-white/10 shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="p-2 bg-cubo-cyan/10 text-cubo-cyan rounded-xl border border-cubo-cyan/20">
+                        <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Análisis Fundamental</h3>
+                        <p class="text-xs text-gray-400">Ratios de valuación (P/E, PEG) y rentabilidad sobre patrimonio (ROE)</p>
+                    </div>
+                </div>
+                <span class="text-[10px] bg-cubo-cyan/10 text-cubo-cyan font-bold px-3 py-1 rounded-xl border border-cubo-cyan/20 font-mono uppercase tracking-wider">
+                    Solapa Fundanentales
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-white/10">
+                            <th class="pb-2.5">Ticker</th>
+                            <th class="pb-2.5 text-right">P/E (Price / Earnings)</th>
+                            <th class="pb-2.5 text-right">PEG (PE to Growth)</th>
+                            <th class="pb-2.5 text-right">ROE (Return on Equity)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-fundamentales" class="divide-y divide-white/5 text-gray-300">
+                        <tr><td colspan="4" class="py-3 text-center text-gray-500">Cargando fundamentales...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN APARTE: TOP 5 GANADORES Y PERDEDORES DE EEUU -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Top Ganadores -->
+            <div class="bg-cubo-card p-6 rounded-2xl border border-white/10 shadow-xl space-y-3">
+                <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20"><i data-lucide="trending-up" class="w-5 h-5"></i></span>
+                        <h3 class="font-bold text-lg text-white">Principales Ganadores (EEUU)</h3>
+                    </div>
+                    <span class="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-2.5 py-1 rounded-xl border border-emerald-500/20 font-mono">Top 5 Subas</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-white/10">
+                                <th class="pb-2">Ticker</th>
+                                <th class="pb-2">Empresa</th>
+                                <th class="pb-2 text-right">Variación Semanal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-ganadores" class="divide-y divide-white/5 text-gray-300">
+                            <tr><td colspan="3" class="py-3 text-center text-gray-500">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Perdedores -->
+            <div class="bg-cubo-card p-6 rounded-2xl border border-white/10 shadow-xl space-y-3">
+                <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-2 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20"><i data-lucide="trending-down" class="w-5 h-5"></i></span>
+                        <h3 class="font-bold text-lg text-white">Principales Perdedores (EEUU)</h3>
+                    </div>
+                    <span class="text-[10px] bg-rose-500/10 text-rose-400 font-bold px-2.5 py-1 rounded-xl border border-rose-500/20 font-mono">Top 5 Bajas</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-white/10">
+                                <th class="pb-2">Ticker</th>
+                                <th class="pb-2">Empresa</th>
+                                <th class="pb-2 text-right">Variación Semanal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-perdedores" class="divide-y divide-white/5 text-gray-300">
+                            <tr><td colspan="3" class="py-3 text-center text-gray-500">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. GENERADOR DE INFOGRAFÍA PARA HISTORIAS -->
+        <section class="bg-cubo-card rounded-2xl border border-white/10 p-4 sm:p-6 shadow-xl space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="image" class="w-5 h-5 text-cubo-cyan"></i>
+                        Infografía para Historias
+                    </h3>
+                    <p class="text-xs text-gray-400">Diseño compacto adaptado a pantalla para captura directa</p>
+                </div>
+            </div>
+
+            <!-- PANEL DE PERSONALIZACIÓN -->
+            <div class="bg-cubo-dark p-3.5 rounded-2xl border border-white/10 space-y-3">
+                <h4 class="text-xs font-extrabold uppercase tracking-wider text-cubo-cyan flex items-center gap-1.5 font-mono">
+                    <i data-lucide="sliders" class="w-4 h-4"></i> Personalizar Contenido
+                </h4>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-300 mb-2">Elementos a incluir en la historia:</label>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-merval-usd" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">Merval USD</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-sp500" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">S&P 500</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-mep" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">Dólar MEP</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-riesgo" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">Riesgo País</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-ccl" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">Dólar CCL</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-btc" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">BTC</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-cubo-card px-2.5 py-1 rounded-xl border border-white/10 cursor-pointer">
+                            <input type="checkbox" id="chk-merval-ars" onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-white text-[11px]">Merval ARS</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/30 cursor-pointer">
+                            <input type="checkbox" id="chk-story-ganadores" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-emerald-400 text-[11px]">Top Ganadores</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/30 cursor-pointer">
+                            <input type="checkbox" id="chk-story-perdedores" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-cyan">
+                            <span class="font-semibold text-rose-400 text-[11px]">Top Perdedores</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-300 mb-1">Frase / Idea de la Semana:</label>
+                    <textarea id="input-idea-semana" oninput="actualizarTextoIdea()" rows="2" class="w-full border border-white/10 p-2 rounded-xl text-xs text-white bg-cubo-card focus:border-cubo-cyan focus:outline-none" placeholder="Escribí acá tu reflexión..."></textarea>
+                </div>
+            </div>
+
+            <!-- TARJETA COMPACTA DE 480px -->
+            <div class="flex justify-center bg-black/40 p-2 sm:p-4 rounded-2xl border border-white/10 overflow-x-auto">
+                <div id="story-infographic" class="w-[320px] h-[480px] bg-[#091026] text-white p-3 rounded-3xl flex flex-col justify-between shadow-2xl relative overflow-hidden border border-white/15 my-auto">
+                    
+                    <div class="absolute -top-12 -right-12 w-36 h-36 bg-cubo-cyan/20 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-cubo-accent/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="relative z-10 border-b border-white/10 pb-1.5 flex justify-between items-center">
+                        <span class="text-[8.5px] font-mono font-bold text-cubo-cyan bg-cubo-cyan/10 border border-cubo-cyan/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            CIERRE SEMANAL
+                        </span>
+                        <span class="text-[8.5px] font-mono text-gray-400">Principales Variables</span>
+                    </div>
+
+                    <div class="relative z-10 space-y-1.5 my-auto">
+                        <div id="story-grid-container" class="grid grid-cols-2 gap-1.5">
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between" id="story-card-merval-usd">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">MERVAL USD</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-merval-usd">$1.739</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-rose-400" id="story-merval-sem">Sem: -0,8%</span>
+                                    <span class="text-rose-400" id="story-merval-ytd">YTD: -13,2%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between" id="story-card-sp500">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">S&P 500</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-sp500">$7.663</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-emerald-400" id="story-sp500-sem">Sem: +0,1%</span>
+                                    <span class="text-emerald-400" id="story-sp500-ytd">YTD: +11,9%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between" id="story-card-mep">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">DÓLAR MEP</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-mep">$1.554</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-emerald-400" id="story-mep-sem">Sem: +0,7%</span>
+                                    <span class="text-emerald-400" id="story-mep-ytd">YTD: +4,6%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between" id="story-card-riesgo">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">RIESGO PAÍS</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-riesgo">674</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-rose-400" id="story-riesgo-sem">Sem: -0,1%</span>
+                                    <span class="text-emerald-400" id="story-riesgo-ytd">YTD: +18,0%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between hidden" id="story-card-ccl">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">DÓLAR CCL</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-ccl">$1.638</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-emerald-400" id="story-ccl-sem">Sem: +1,1%</span>
+                                    <span class="text-emerald-400" id="story-ccl-ytd">YTD: +7,5%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between hidden" id="story-card-btc">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">BITCOIN</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-btc">$81.086</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-rose-400" id="story-btc-sem">Sem: -0,9%</span>
+                                    <span class="text-rose-400" id="story-btc-ytd">YTD: -8,6%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/[0.04] backdrop-blur-md p-1.5 rounded-lg border border-white/10 flex flex-col justify-between hidden" id="story-card-merval-ars">
+                                <div class="flex justify-between items-center"><span class="text-[7.5px] font-bold text-gray-400 font-mono">MERVAL ARS</span><span class="text-[8px] font-extrabold font-mono text-white" id="story-merval-ars">$2.8M</span></div>
+                                <div class="flex justify-between text-[6.5px] font-mono font-bold mt-0.5">
+                                    <span class="text-emerald-400" id="story-merval-ars-sem">Sem: +0,7%</span>
+                                    <span class="text-rose-400" id="story-merval-ars-ytd">YTD: -6,6%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-1.5 font-mono">
+                            <div id="story-box-ganadores" class="bg-white/[0.03] border border-emerald-500/20 p-1.5 rounded-lg">
+                                <p class="text-[7.5px] font-bold text-emerald-400 mb-1">Top 3 Subas</p>
+                                <div id="story-ganadores" class="space-y-0.5 text-[7px] text-gray-300"></div>
+                            </div>
+                            <div id="story-box-perdedores" class="bg-white/[0.03] border border-rose-500/20 p-1.5 rounded-lg">
+                                <p class="text-[7.5px] font-bold text-rose-400 mb-1">Top 3 Bajas</p>
+                                <div id="story-perdedores" class="space-y-0.5 text-[7px] text-gray-300"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 bg-white/[0.03] backdrop-blur-md border border-white/10 p-1.5 rounded-xl text-center space-y-0.5">
+                        <p id="story-idea-text" class="text-[9px] font-medium leading-tight text-gray-200 italic">
+                            "Consistencia y tendencia: Medir el pulso real de los activos en pesos y dólares."
+                        </p>
+                    </div>
+
+                    <div class="relative z-10 border-t border-white/10 pt-1.5 flex justify-between items-center text-[8px] text-gray-400 font-mono">
+                        <span class="text-gray-500">mercado & finanzas</span>
+                        <div class="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-cubo-cyan font-bold">
+                            <i data-lucide="user" class="w-2.5 h-2.5"></i>
+                            <span>@francombina7</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal de Edición Manual -->
+    <div id="modal-edicion" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-cubo-card border border-white/10 rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 max-h-[85vh] flex flex-col text-white">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 shrink-0">
+                <h3 class="font-bold text-lg text-white">Edición Manual de Contingencia</h3>
+                <button onclick="cerrarModalEdicion()" class="text-gray-400 hover:text-white font-bold">✕</button>
+            </div>
+            <div class="overflow-y-auto pr-2 space-y-3 text-sm flex-grow font-mono">
+                <div>
+                    <label class="block text-[11px] text-gray-400 font-bold mb-1">S&P Merval en USD</label>
+                    <input type="text" id="input-merval-usd" value="$1.739" class="w-full bg-cubo-dark border border-white/10 p-2 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-gray-400 font-bold mb-1">S&P 500</label>
+                    <input type="text" id="input-sp500" value="$7.663" class="w-full bg-cubo-dark border border-white/10 p-2 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-gray-400 font-bold mb-1">Dólar MEP</label>
+                    <input type="text" id="input-mep" value="$1.554" class="w-full bg-cubo-dark border border-white/10 p-2 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-gray-400 font-bold mb-1">Riesgo País</label>
+                    <input type="text" id="input-riesgo" value="674" class="w-full bg-cubo-dark border border-white/10 p-2 rounded-xl text-white">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 border-t border-white/10 pt-3 shrink-0">
+                <button onclick="cerrarModalEdicion()" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-white/5 rounded-xl">Cancelar</button>
+                <button onclick="guardarEdicionManual()" class="px-4 py-2 text-xs font-semibold bg-cubo-cyan text-cubo-navy hover:bg-cubo-accent rounded-xl">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Parser CSV, Personalización e Interfaz -->
+    <script>
+        const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfJzgtIuaz2put1UG91FrHNn_NaN3wyt3FUK0viveHJyjZ_RCOUMtfnVwC9A3G-7sGai95izoGw7OM/pub?output=csv";
+        const DEFAULT_SUBAS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=454584979";
+        const DEFAULT_BAJAS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=205860665";
+        const DEFAULT_FUNDAMENTALES_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=601446162";
+
+        let marketData = {
+            mervalArs: { val: "$2.848.945", sem: "+0,7%", ytd: "-6,6%" },
+            mervalUsd: { val: "$1.739", sem: "-0,8%", ytd: "-13,2%" },
+            sp500:     { val: "$7.663", sem: "+0,1%", ytd: "+11,9%" },
+            btc:       { val: "$81.086", sem: "-0,9%", ytd: "-8,6%" },
+            mep:       { val: "$1.554", sem: "+0,7%", ytd: "+4,6%" },
+            ccl:       { val: "$1.638", sem: "+1,1%", ytd: "+7,5%" },
+            riesgo:    { val: "674", sem: "-0,1%", ytd: "+18,0%" }
+        };
+
+        let fallbackGanadores = [
+            { ticker: "SPOT", empresa: "Spotify Technology S.A.", var: "+10,03%" },
+            { ticker: "UNH", empresa: "UnitedHealth Group Incorporated", var: "+5,87%" },
+            { ticker: "HD", empresa: "Home Depot, Inc. (The)", var: "+5,85%" },
+            { ticker: "TSLA", empresa: "Tesla, Inc.", var: "+5,60%" },
+            { ticker: "JNJ", empresa: "Johnson & Johnson", var: "+4,72%" }
+        ];
+
+        let fallbackPerdedores = [
+            { ticker: "META", empresa: "Meta Platforms, Inc.", var: "-8,53%" },
+            { ticker: "NFLX", empresa: "Netflix, Inc.", var: "-4,93%" },
+            { ticker: "GOOGL", empresa: "Alphabet Inc.", var: "-4,81%" },
+            { ticker: "AMD", empresa: "Advanced Micro Devices, Inc.", var: "-3,94%" },
+            { ticker: "AVGO", empresa: "Broadcom Inc.", var: "-1,68%" }
+        ];
+
+        let fallbackFundamentales = [
+            { ticker: "META", pe: "0,30", peg: "0,29", roe: "0,28%" },
+            { ticker: "NFLX", pe: "0,70", peg: "0,67", roe: "0,65%" },
+            { ticker: "GOOGL", pe: "0,50", peg: "0,48", roe: "0,46%" },
+            { ticker: "JPM", pe: "12,00", peg: "11,52", roe: "11,06%" },
+            { ticker: "NVDA", pe: "20,00", peg: "19,20", roe: "18,43%" },
+            { ticker: "BAC", pe: "20,60", peg: "19,78", roe: "18,98%" },
+            { ticker: "MSFT", pe: "16,48", peg: "15,82", roe: "15,19%" },
+            { ticker: "AMZN", pe: "16,97", peg: "16,30", roe: "15,64%" },
+            { ticker: "MA", pe: "13,58", peg: "13,04", roe: "12,51%" },
+            { ticker: "PG", pe: "13,99", peg: "13,43", roe: "12,89%" },
+            { ticker: "AAPL", pe: "11,19", peg: "10,74", roe: "10,31%" },
+            { ticker: "SPOT", pe: "3,50", peg: "3,36", roe: "3,23%" }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+            cargarSheetURLsGuardadas();
+            
+            const ideaElem = document.getElementById('story-idea-text');
+            if (ideaElem) {
+                document.getElementById('input-idea-semana').value = ideaElem.innerText.replace(/^"|"$/g, '');
+            }
+
+            renderizarTablasYStory();
+            actualizarVisibilidadActivos();
+            sincronizarConSheet();
+        });
+
+        function toggleConfigPanel() {
+            document.getElementById('panel-configuracion').classList.toggle('hidden');
+        }
+
+        function cargarSheetURLsGuardadas() {
+            document.getElementById('cfg-sheet-url').value = localStorage.getItem('cubo_sheet_csv_url') || DEFAULT_SHEET_URL;
+            document.getElementById('cfg-subas-url').value = localStorage.getItem('cubo_subas_csv_url') || DEFAULT_SUBAS_URL;
+            document.getElementById('cfg-bajas-url').value = localStorage.getItem('cubo_bajas_csv_url') || DEFAULT_BAJAS_URL;
+            document.getElementById('cfg-fundamentales-url').value = localStorage.getItem('cubo_fundamentales_csv_url') || DEFAULT_FUNDAMENTALES_URL;
+        }
+
+        function guardarSheetURLs() {
+            let url = document.getElementById('cfg-sheet-url').value.trim();
+            if (url.includes("/pubhtml")) url = url.replace("/pubhtml", "/pub?output=csv");
+            localStorage.setItem('cubo_sheet_csv_url', url);
+
+            let subasUrl = document.getElementById('cfg-subas-url').value.trim();
+            if (subasUrl.includes("/edit")) subasUrl = subasUrl.replace(/\/edit.*$/, '/export?format=csv');
+            localStorage.setItem('cubo_subas_csv_url', subasUrl);
+
+            let bajasUrl = document.getElementById('cfg-bajas-url').value.trim();
+            if (bajasUrl.includes("/edit")) bajasUrl = bajasUrl.replace(/\/edit.*$/, '/export?format=csv');
+            localStorage.setItem('cubo_bajas_csv_url', bajasUrl);
+
+            let fundamentalesUrl = document.getElementById('cfg-fundamentales-url').value.trim();
+            if (fundamentalesUrl.includes("/edit")) fundamentalesUrl = fundamentalesUrl.replace(/\/edit.*$/, '/export?format=csv');
+            localStorage.setItem('cubo_fundamentales_csv_url', fundamentalesUrl);
+
+            toggleConfigPanel();
+            sincronizarConSheet();
+        }
+
+        async function sincronizarConSheet() {
+            let url = localStorage.getItem('cubo_sheet_csv_url') || DEFAULT_SHEET_URL;
+            if (url.includes("/pubhtml")) url = url.replace("/pubhtml", "/pub?output=csv");
+
+            let subasUrl = localStorage.getItem('cubo_subas_csv_url') || DEFAULT_SUBAS_URL;
+            let bajasUrl = localStorage.getItem('cubo_bajas_csv_url') || DEFAULT_BAJAS_URL;
+            let fundamentalesUrl = localStorage.getItem('cubo_fundamentales_csv_url') || DEFAULT_FUNDAMENTALES_URL;
+
+            const badge = document.getElementById('badge-estado');
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Sincronizando...`;
+
+            try {
+                let response = await fetch(url);
+                let csvText = await response.text();
+                parsearCSVConComillas(csvText);
+                actualizarInterfaz();
+
+                let ganadoresActuales = fallbackGanadores;
+                let perdedoresActuales = fallbackPerdedores;
+                let fundamentalesActuales = fallbackFundamentales;
+
+                if (subasUrl) {
+                    try {
+                        let resSubas = await fetch(subasUrl);
+                        let textSubas = await resSubas.text();
+                        let parsedSubas = extraerTop5DesdeCSV(textSubas);
+                        if (parsedSubas.length > 0) ganadoresActuales = parsedSubas;
+                    } catch (e) { console.log("Usando respaldo local Subas por CORS"); }
+                }
+
+                if (bajasUrl) {
+                    try {
+                        let resBajas = await fetch(bajasUrl);
+                        let textBajas = await resBajas.text();
+                        let parsedBajas = extraerTop5DesdeCSV(textBajas);
+                        if (parsedBajas.length > 0) perdedoresActuales = parsedBajas;
+                    } catch (e) { console.log("Usando respaldo local Bajas por CORS"); }
+                }
+
+                if (fundamentalesUrl) {
+                    try {
+                        let resFund = await fetch(fundamentalesUrl);
+                        let textFund = await resFund.text();
+                        let parsedFund = extraerFundamentalesDesdeCSV(textFund);
+                        if (parsedFund.length > 0) fundamentalesActuales = parsedFund;
+                    } catch (e) { console.log("Usando respaldo local Fundamentales por CORS"); }
+                }
+
+                renderizarTabla('tabla-ganadores', ganadoresActuales, 'text-emerald-400');
+                renderizarTabla('tabla-perdedores', perdedoresActuales, 'text-rose-400');
+                renderizarTablaFundamentales(fundamentalesActuales);
+                renderizarStoryTop(ganadoresActuales.slice(0, 3), perdedoresActuales.slice(0, 3));
+
+                badge.className = "text-xs bg-emerald-500/10 text-emerald-400 font-bold px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Google Sheets Sincronizado`;
+
+            } catch (err) {
+                console.warn("Aviso CORS detectado, manteniendo valores de respaldo.");
+                renderizarTabla('tabla-ganadores', fallbackGanadores, 'text-emerald-400');
+                renderizarTabla('tabla-perdedores', fallbackPerdedores, 'text-rose-400');
+                renderizarTablaFundamentales(fallbackFundamentales);
+                renderizarStoryTop(fallbackGanadores.slice(0, 3), fallbackPerdedores.slice(0, 3));
+
+                badge.className = "text-xs bg-amber-500/10 text-amber-400 font-bold px-3 py-1.5 rounded-xl border border-amber-500/20 flex items-center gap-1.5";
+                badge.innerHTML = `⚠️ Modo Local / Respaldo Activo`;
+            }
+        }
+
+        function redondearValor(str) {
+            if (!str) return "";
+            let limpio = str.replace('$', '').replace(/\./g, '').replace(',', '.').trim();
+            let num = parseFloat(limpio);
+            if (!isNaN(num) && str.includes('$')) {
+                return '$' + Math.round(num).toLocaleString('es-AR');
+            }
+            if (!isNaN(num) && str.includes('%')) {
+                return (num > 0 ? '+' : '') + num.toFixed(1).replace('.', ',') + '%';
+            }
+            return str;
+        }
+
+        function parsearCSVConComillas(text) {
+            let lines = text.split("\n");
+            lines.forEach(line => {
+                let cols = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        cols.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                cols.push(current.trim());
+                cols = cols.map(c => c.replace(/^"|"$/g, '').trim());
+
+                if (cols.length >= 2) {
+                    let nombre = cols[0].toUpperCase();
+                    let valor = redondearValor(cols[1]);
+                    let sem = redondearValor(cols[3] || "");
+                    let ytd = redondearValor(cols[5] || "");
+
+                    if (nombre.includes("MERVAL EN USD")) {
+                        marketData.mervalUsd = { val: valor, sem, ytd };
+                    } else if (nombre.includes("S&P MERVAL")) {
+                        marketData.mervalArs = { val: valor, sem, ytd };
+                    } else if (nombre.includes("SP500")) {
+                        marketData.sp500 = { val: valor, sem, ytd };
+                    } else if (nombre.includes("BTC")) {
+                        marketData.btc = { val: valor, sem, ytd };
+                    } else if (nombre.includes("DÓLAR MEP") || nombre.includes("DOLAR MEP")) {
+                        marketData.mep = { val: valor, sem, ytd };
+                    } else if (nombre.includes("DÓLAR CCL") || nombre.includes("DOLAR CCL")) {
+                        marketData.ccl = { val: valor, sem, ytd };
+                    } else if (nombre.includes("RIESGO")) {
+                        marketData.riesgo = { val: valor, sem, ytd };
+                    }
+                }
+            });
+        }
+
+        function extraerTop5DesdeCSV(text) {
+            let lines = text.split("\n");
+            let resultados = [];
+            let count = 0;
+
+            for (let i = 1; i < lines.length && count < 5; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                let cols = line.split(",").map(c => c.replace(/^"|"$/g, '').trim());
+                if (cols.length >= 4) {
+                    let ticker = cols[0];
+                    let empresa = cols[1];
+                    let varSem = cols[3];
+                    if (ticker) {
+                        resultados.push({ ticker, empresa, var: varSem });
+                        count++;
+                    }
+                }
+            }
+            return resultados;
+        }
+
+        function extraerFundamentalesDesdeCSV(text) {
+            let lines = text.split("\n");
+            let resultados = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                let cols = line.split(",").map(c => c.replace(/^"|"$/g, '').trim());
+                if (cols.length >= 4) {
+                    let ticker = cols[0];
+                    let pe = cols[1];
+                    let peg = cols[2];
+                    let roe = cols[3];
+                    if (ticker && ticker !== "Ticker") {
+                        if (roe && !roe.includes('%')) roe = roe + '%';
+                        resultados.push({ ticker, pe, peg, roe });
+                    }
+                }
+            }
+            return resultados;
+        }
+
+        function renderizarTabla(elementId, datos, colorClass) {
+            let html = "";
+            datos.forEach(item => {
+                html += `
+                    <tr>
+                        <td class="py-2.5 font-bold text-white">${item.ticker}</td>
+                        <td class="py-2.5 text-gray-400 truncate max-w-[180px]">${item.empresa}</td>
+                        <td class="py-2.5 text-right font-bold ${colorClass}">${item.var}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        function renderizarTablaFundamentales(datos) {
+            let html = "";
+            datos.forEach(item => {
+                html += `
+                    <tr>
+                        <td class="py-2.5 font-bold text-white">${item.ticker}</td>
+                        <td class="py-2.5 text-right font-bold text-cubo-cyan">${item.pe}</td>
+                        <td class="py-2.5 text-right text-gray-300">${item.peg}</td>
+                        <td class="py-2.5 text-right font-bold text-emerald-400">${item.roe}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('tabla-fundamentales').innerHTML = html;
+        }
+
+        function renderizarStoryTop(ganadores, perdedores) {
+            let htmlG = "";
+            ganadores.forEach(item => {
+                htmlG += `<div class="flex justify-between items-center"><span class="font-bold text-white">${item.ticker}</span> <span class="text-emerald-400 font-bold">${item.var}</span></div>`;
+            });
+            document.getElementById('story-ganadores').innerHTML = htmlG;
+
+            let htmlP = "";
+            perdedores.forEach(item => {
+                htmlP += `<div class="flex justify-between items-center"><span class="font-bold text-white">${item.ticker}</span> <span class="text-rose-400 font-bold">${item.var}</span></div>`;
+            });
+            document.getElementById('story-perdedores').innerHTML = htmlP;
+        }
+
+        function renderizarTablasYStory() {
+            renderizarTabla('tabla-ganadores', fallbackGanadores, 'text-emerald-400');
+            renderizarTabla('tabla-perdedores', fallbackPerdedores, 'text-rose-400');
+            renderizarTablaFundamentales(fallbackFundamentales);
+            renderizarStoryTop(fallbackGanadores.slice(0, 3), fallbackPerdedores.slice(0, 3));
+        }
+
+        function actualizarInterfaz() {
+            document.getElementById('val-merval-usd').innerText = marketData.mervalUsd.val;
+            document.getElementById('sem-merval-usd').innerText = `Sem: ${marketData.mervalUsd.sem}`;
+            document.getElementById('ytd-merval-usd').innerText = `YTD: ${marketData.mervalUsd.ytd}`;
+
+            document.getElementById('val-sp500').innerText = marketData.sp500.val;
+            document.getElementById('sem-sp500').innerText = `Sem: ${marketData.sp500.sem}`;
+            document.getElementById('ytd-sp500').innerText = `YTD: ${marketData.sp500.ytd}`;
+
+            document.getElementById('val-mep').innerText = marketData.mep.val;
+            document.getElementById('sem-mep').innerText = `Sem: ${marketData.mep.sem}`;
+            document.getElementById('ytd-mep').innerText = `YTD: ${marketData.mep.ytd}`;
+
+            document.getElementById('val-riesgo').innerText = marketData.riesgo.val;
+            document.getElementById('sem-riesgo').innerText = `Sem: ${marketData.riesgo.sem}`;
+            document.getElementById('ytd-riesgo').innerText = `YTD: ${marketData.riesgo.ytd}`;
+
+            document.getElementById('val-merval-ars').innerText = marketData.mervalArs.val;
+            document.getElementById('merval-ars-sem').innerText = `Sem: ${marketData.mervalArs.sem}`;
+            document.getElementById('merval-ars-ytd').innerText = `YTD: ${marketData.mervalArs.ytd}`;
+
+            document.getElementById('val-ccl').innerText = marketData.ccl.val;
+            document.getElementById('ccl-sem').innerText = `Sem: ${marketData.ccl.sem}`;
+
+            document.getElementById('val-btc').innerText = marketData.btc.val;
+            document.getElementById('btc-sem').innerText = `Sem: ${marketData.btc.sem}`;
+
+            document.getElementById('story-merval-usd').innerText = marketData.mervalUsd.val;
+            document.getElementById('story-merval-sem').innerText = `Sem: ${marketData.mervalUsd.sem}`;
+            document.getElementById('story-merval-ytd').innerText = `YTD: ${marketData.mervalUsd.ytd}`;
+            document.getElementById('story-merval-sem').className = marketData.mervalUsd.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-merval-ytd').className = marketData.mervalUsd.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('story-sp500').innerText = marketData.sp500.val;
+            document.getElementById('story-sp500-sem').innerText = `Sem: ${marketData.sp500.sem}`;
+            document.getElementById('story-sp500-ytd').innerText = `YTD: ${marketData.sp500.ytd}`;
+            document.getElementById('story-sp500-sem').className = marketData.sp500.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-sp500-ytd').className = marketData.sp500.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('story-mep').innerText = marketData.mep.val;
+            document.getElementById('story-mep-sem').innerText = `Sem: ${marketData.mep.sem}`;
+            document.getElementById('story-mep-ytd').innerText = `YTD: ${marketData.mep.ytd}`;
+            document.getElementById('story-mep-sem').className = marketData.mep.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-mep-ytd').className = marketData.mep.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('story-riesgo').innerText = marketData.riesgo.val;
+            document.getElementById('story-riesgo-sem').innerText = `Sem: ${marketData.riesgo.sem}`;
+            document.getElementById('story-riesgo-ytd').innerText = `YTD: ${marketData.riesgo.ytd}`;
+            document.getElementById('story-riesgo-sem').className = marketData.riesgo.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-riesgo-ytd').className = marketData.riesgo.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('story-ccl').innerText = marketData.ccl.val;
+            document.getElementById('story-ccl-sem').innerText = `Sem: ${marketData.ccl.sem}`;
+            document.getElementById('story-ccl-ytd').innerText = `YTD: ${marketData.ccl.ytd}`;
+            document.getElementById('story-ccl-sem').className = marketData.ccl.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-ccl-ytd').className = marketData.ccl.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('story-btc').innerText = marketData.btc.val;
+            document.getElementById('story-btc-sem').innerText = `Sem: ${marketData.btc.sem}`;
+            document.getElementById('story-btc-ytd').innerText = `YTD: ${marketData.btc.ytd}`;
+            document.getElementById('story-btc-sem').className = marketData.btc.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-btc-ytd').className = marketData.btc.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+
+            document.getElementById('story-merval-ars').innerText = marketData.mervalArs.val;
+            document.getElementById('story-merval-ars-sem').innerText = `Sem: ${marketData.mervalArs.sem}`;
+            document.getElementById('story-merval-ars-ytd').innerText = `YTD: ${marketData.mervalArs.ytd}`;
+            document.getElementById('story-merval-ars-sem').className = marketData.mervalArs.sem.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+            document.getElementById('story-merval-ars-ytd').className = marketData.mervalArs.ytd.includes('+') ? 'text-emerald-400' : 'text-rose-400';
+        }
+
+        function actualizarVisibilidadActivos() {
+            const mappings = [
+                { chk: 'chk-merval-usd', card: 'story-card-merval-usd' },
+                { chk: 'chk-sp500',      card: 'story-card-sp500' },
+                { chk: 'chk-mep',        card: 'story-card-mep' },
+                { chk: 'chk-riesgo',     card: 'story-card-riesgo' },
+                { chk: 'chk-ccl',        card: 'story-card-ccl' },
+                { chk: 'chk-btc',        card: 'story-card-btc' },
+                { chk: 'chk-merval-ars', card: 'story-card-merval-ars' }
+            ];
+
+            mappings.forEach(m => {
+                const isChecked = document.getElementById(m.chk).checked;
+                const card = document.getElementById(m.card);
+                if (isChecked) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            const showGanadores = document.getElementById('chk-story-ganadores').checked;
+            const boxGanadores = document.getElementById('story-box-ganadores');
+            if (showGanadores) { boxGanadores.classList.remove('hidden'); } else { boxGanadores.classList.add('hidden'); }
+
+            const showPerdedores = document.getElementById('chk-story-perdedores').checked;
+            const boxPerdedores = document.getElementById('story-box-perdedores');
+            if (showPerdedores) { boxPerdedores.classList.remove('hidden'); } else { boxPerdedores.classList.add('hidden'); }
+        }
+
+        function actualizarTextoIdea() {
+            const val = document.getElementById('input-idea-semana').value;
+            document.getElementById('story-idea-text').innerText = `"${val}"`;
+        }
+
+        function abrirModalEdicion() { document.getElementById('modal-edicion').classList.remove('hidden'); }
+        function cerrarModalEdicion() { document.getElementById('modal-edicion').classList.add('hidden'); }
+        function guardarEdicionManual() {
+            marketData.mervalUsd.val = document.getElementById('input-merval-usd').value;
+            marketData.sp500.val = document.getElementById('input-sp500').value;
+            marketData.mep.val = document.getElementById('input-mep').value;
+            marketData.riesgo.val = document.getElementById('input-riesgo').value;
+            actualizarInterfaz();
+            cerrarModalEdicion();
+        }
+    </script>
+</body>
+</html>
