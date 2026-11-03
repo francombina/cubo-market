@@ -702,4 +702,630 @@
     <script>
         const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfJzgtIuaz2put1UG91FrHNn_NaN3wyt3FUK0viveHJyjZ_RCOUMtfnVwC9A3G-7sGai95izoGw7OM/pub?output=csv";
         const DEFAULT_SUBAS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=454584979";
-        const DEFAULT_BAJAS_URL = "
+        const DEFAULT_BAJAS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=205860665";
+        const DEFAULT_TICKERS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=1534713781";
+
+        function safeGetStorage(key, fallback) {
+            try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
+        }
+        function safeSetStorage(key, val) {
+            try { localStorage.setItem(key, val); } catch (e) {}
+        }
+
+        let marketData = {
+            mervalArs: { val: "$2.848.945", sem: "+0,7%", ytd: "-6,6%" },
+            mervalUsd: { val: "$1.693", sem: "-3,4%", ytd: "-15,5%" },
+            sp500:     { val: "$7.719", sem: "+1,3%", ytd: "+12,8%" },
+            btc:       { val: "$80.544", sem: "+0,7%", ytd: "-8,6%" },
+            mep:       { val: "$1.578", sem: "+0,9%", ytd: "+6,2%" },
+            ccl:       { val: "$1.683", sem: "+1,7%", ytd: "+7,5%" },
+            riesgo:    { val: "765", sem: "+13,3%", ytd: "+34,0%" }
+        };
+
+        let fallbackGanadores = [
+            { ticker: "SPOT", empresa: "Spotify Technology S.A.", var: "+10,03%" },
+            { ticker: "UNH", empresa: "UnitedHealth Group Inc.", var: "+5,87%" },
+            { ticker: "HD", empresa: "Home Depot, Inc.", var: "+5,85%" },
+            { ticker: "TSLA", empresa: "Tesla, Inc.", var: "+5,60%" },
+            { ticker: "JNJ", empresa: "Johnson & Johnson", var: "+4,72%" }
+        ];
+
+        let fallbackPerdedores = [
+            { ticker: "META", empresa: "Meta Platforms, Inc.", var: "-8,53%" },
+            { ticker: "NFLX", empresa: "Netflix, Inc.", var: "-4,93%" },
+            { ticker: "GOOGL", empresa: "Alphabet Inc.", var: "-4,81%" },
+            { ticker: "AMD", empresa: "Advanced Micro Devices", var: "-3,94%" },
+            { ticker: "AVGO", empresa: "Broadcom Inc.", var: "-1,68%" }
+        ];
+
+        const NOTICIAS_SERIOSAS = [
+            { titulo: "Estrategia de la Reserva Federal y Tasas de Referencia", descripcion: "Los operadores evalúan los próximos movimientos de política monetaria en EE.UU. tras los datos de empleo y la desaceleración inflacionaria." },
+            { titulo: "Dinámica Fiscal y Superávit Financiero", descripcion: "El seguimiento de las cuentas públicas y la absorción de pesos en licitaciones del Tesoro continúan marcando el pulso de la plaza doméstica." },
+            { titulo: "Balances Corporativos y Selectividad en Wall Street", descripcion: "Los reportes trimestrales de las principales compañías de tecnología y consumo exigen métricas estrictas de flujo de caja libre y rentabilidad." },
+            { titulo: "Demanda de Deuda Soberana y Desempeño de Títulos", descripcion: "Los bonos Globales y Bonar operan en función de la compresión del riesgo país y el cumplimiento de las metas fiscales pautadas." },
+            { titulo: "Mercado de Materias Primas y Perspectivas Energéticas", descripcion: "La cotización internacional del petróleo y los granos clave operan condicionados por la demanda global y los costos logísticos." }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+            cargarSheetURLsGuardadas();
+            
+            const ideaElem = document.getElementById('story-idea-text');
+            if (ideaElem) {
+                document.getElementById('input-idea-semana').value = ideaElem.innerText.replace(/^"|"$/g, '').trim();
+            }
+
+            actualizarInterfaz();
+            renderizarTablasYStory();
+            actualizarVisibilidadActivos();
+            inicializarSeccionFundamentales();
+            sincronizarConSheet();
+            renderizarListaNoticias(NOTICIAS_SERIOSAS, "Hoy");
+        });
+
+        function toggleConfigPanel() {
+            document.getElementById('panel-configuracion').classList.toggle('hidden');
+        }
+
+        function cargarSheetURLsGuardadas() {
+            document.getElementById('cfg-sheet-url').value = safeGetStorage('cubo_sheet_csv_url', DEFAULT_SHEET_URL);
+            document.getElementById('cfg-subas-url').value = safeGetStorage('cubo_subas_csv_url', DEFAULT_SUBAS_URL);
+            document.getElementById('cfg-bajas-url').value = safeGetStorage('cubo_bajas_csv_url', DEFAULT_BAJAS_URL);
+            const tEl = document.getElementById('cfg-tickers-url');
+            if (tEl) tEl.value = safeGetStorage('cubo_tickers_csv_url', DEFAULT_TICKERS_URL);
+        }
+
+        function guardarSheetURLs() {
+            let url = document.getElementById('cfg-sheet-url').value.trim();
+            if (url.includes("/pubhtml")) url = url.replace("/pubhtml", "/pub?output=csv");
+            safeSetStorage('cubo_sheet_csv_url', url);
+
+            let subasUrl = document.getElementById('cfg-subas-url').value.trim();
+            if (subasUrl.includes("/edit")) subasUrl = subasUrl.replace(/\/edit.*$/, '/export?format=csv');
+            safeSetStorage('cubo_subas_csv_url', subasUrl);
+
+            let bajasUrl = document.getElementById('cfg-bajas-url').value.trim();
+            if (bajasUrl.includes("/edit")) bajasUrl = bajasUrl.replace(/\/edit.*$/, '/export?format=csv');
+            safeSetStorage('cubo_bajas_csv_url', bajasUrl);
+
+            const tEl = document.getElementById('cfg-tickers-url');
+            if (tEl) {
+                let tickersUrl = tEl.value.trim();
+                if (tickersUrl.includes("/edit")) tickersUrl = tickersUrl.replace(/\/edit.*$/, '/export?format=csv&gid=1534713781');
+                safeSetStorage('cubo_tickers_csv_url', tickersUrl);
+            }
+
+            toggleConfigPanel();
+            sincronizarConSheet();
+        }
+
+        function renderizarListaNoticias(lista, fechaStr) {
+            let html = "";
+            lista.forEach((item, index) => {
+                html += `
+                    <div class="bg-cubo-bg p-3.5 rounded-xl border border-cubo-border flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-mono font-bold text-cubo-sky bg-cubo-sky/10 px-2.5 py-0.5 rounded border border-cubo-sky/20 inline-block mb-2">0${index + 1}</span>
+                            <h4 class="font-semibold text-xs text-white leading-snug mb-1.5">${item.titulo}</h4>
+                            <p class="text-[11px] text-cubo-muted leading-relaxed">${item.descripcion}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('seccion-noticias-dia').innerHTML = html;
+            if (fechaStr) {
+                document.getElementById('fecha-noticias').innerText = `Actualizado: ${fechaStr}`;
+            }
+        }
+
+        function obtenerClasesVariacion(strVal) {
+            if (!strVal) return "bg-cubo-elevated text-cubo-muted border-cubo-border";
+            if (strVal.includes('+')) {
+                return "bg-cubo-green/10 text-cubo-green border-cubo-green/25 font-medium";
+            } else if (strVal.includes('-')) {
+                return "bg-cubo-red/10 text-cubo-red border-cubo-red/25 font-medium";
+            }
+            return "bg-cubo-elevated text-cubo-muted border-cubo-border";
+        }
+
+        async function sincronizarConSheet() {
+            let url = safeGetStorage('cubo_sheet_csv_url', DEFAULT_SHEET_URL);
+            if (url.includes("/pubhtml")) url = url.replace("/pubhtml", "/pub?output=csv");
+
+            let subasUrl = safeGetStorage('cubo_subas_csv_url', DEFAULT_SUBAS_URL);
+            let bajasUrl = safeGetStorage('cubo_bajas_csv_url', DEFAULT_BAJAS_URL);
+            let tickersUrl = safeGetStorage('cubo_tickers_csv_url', DEFAULT_TICKERS_URL);
+
+            const badge = document.getElementById('badge-estado');
+            badge.className = "text-xs bg-cubo-sky/10 text-cubo-sky font-medium px-3 py-1.5 rounded-lg border border-cubo-sky/25 flex items-center gap-1.5 mr-1";
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cubo-sky animate-ping"></span> Sincronizando...`;
+
+            try {
+                let response = await fetch(url);
+                let csvText = await response.text();
+                parsearCSVConComillas(csvText);
+                actualizarInterfaz();
+
+                let ganadoresActuales = fallbackGanadores;
+                let perdedoresActuales = fallbackPerdedores;
+
+                if (subasUrl) {
+                    try {
+                        let resSubas = await fetch(subasUrl);
+                        let textSubas = await resSubas.text();
+                        let parsedSubas = extraerTop5DesdeCSV(textSubas);
+                        if (parsedSubas.length > 0) ganadoresActuales = parsedSubas;
+                    } catch (e) {}
+                }
+
+                if (bajasUrl) {
+                    try {
+                        let resBajas = await fetch(bajasUrl);
+                        let textBajas = await resBajas.text();
+                        let parsedBajas = extraerTop5DesdeCSV(textBajas);
+                        if (parsedBajas.length > 0) perdedoresActuales = parsedBajas;
+                    } catch (e) {}
+                }
+
+                renderizarTabla('tabla-ganadores', ganadoresActuales, true);
+                renderizarTabla('tabla-perdedores', perdedoresActuales, false);
+                renderizarStoryTop(ganadoresActuales.slice(0, 3), perdedoresActuales.slice(0, 3));
+                renderizarPillsTickers();
+                filtrarScreener();
+                seleccionarTickerFundamental(tickerSeleccionadoActual, false);
+
+                badge.className = "text-xs bg-cubo-green/10 text-cubo-green font-medium px-3 py-1.5 rounded-lg border border-cubo-green/25 flex items-center gap-1.5 mr-1";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cubo-green"></span> Google Sheets Sincronizado`;
+
+            } catch (err) {
+                renderizarTabla('tabla-ganadores', fallbackGanadores, true);
+                renderizarTabla('tabla-perdedores', fallbackPerdedores, false);
+                renderizarStoryTop(fallbackGanadores.slice(0, 3), fallbackPerdedores.slice(0, 3));
+
+                badge.className = "text-xs bg-cubo-elevated text-cubo-muted font-medium px-3 py-1.5 rounded-lg border border-cubo-border flex items-center gap-1.5 mr-1";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cubo-muted"></span> Modo Local Activo`;
+            }
+        }
+
+        function redondearValor(str) {
+            if (!str) return "";
+            let limpio = str.replace('$', '').replace(/\./g, '').replace(',', '.').trim();
+            let num = parseFloat(limpio);
+            if (!isNaN(num) && str.includes('$')) {
+                return '$' + Math.round(num).toLocaleString('es-AR');
+            }
+            if (!isNaN(num) && str.includes('%')) {
+                return (num > 0 ? '+' : '') + num.toFixed(1).replace('.', ',') + '%';
+            }
+            return str;
+        }
+
+        function parsearCSVConComillas(text) {
+            let lines = text.split("\n");
+            lines.forEach(line => {
+                let cols = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        cols.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                cols.push(current.trim());
+                cols = cols.map(c => c.replace(/^"|"$/g, '').trim());
+
+                if (cols.length >= 2) {
+                    let nombre = cols[0].toUpperCase();
+                    let valor = redondearValor(cols[1]);
+                    let sem = redondearValor(cols[3] || "");
+                    let ytd = redondearValor(cols[5] || "");
+
+                    if (nombre.includes("MERVAL EN USD")) {
+                        marketData.mervalUsd = { val: valor, sem, ytd };
+                    } else if (nombre.includes("S&P MERVAL")) {
+                        marketData.mervalArs = { val: valor, sem, ytd };
+                    } else if (nombre.includes("SP500")) {
+                        marketData.sp500 = { val: valor, sem, ytd };
+                    } else if (nombre.includes("BTC")) {
+                        marketData.btc = { val: valor, sem, ytd };
+                    } else if (nombre.includes("DÓLAR MEP") || nombre.includes("DOLAR MEP")) {
+                        marketData.mep = { val: valor, sem, ytd };
+                    } else if (nombre.includes("DÓLAR CCL") || nombre.includes("DOLAR CCL")) {
+                        marketData.ccl = { val: valor, sem, ytd };
+                    } else if (nombre.includes("RIESGO")) {
+                        marketData.riesgo = { val: valor, sem, ytd };
+                    }
+                }
+            });
+        }
+
+        function extraerTop5DesdeCSV(text) {
+            let lines = text.split("\n");
+            let resultados = [];
+            let count = 0;
+
+            for (let i = 1; i < lines.length && count < 5; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                let cols = [];
+                let current = '';
+                let inQuotes = false;
+                for (let j = 0; j < line.length; j++) {
+                    let char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        cols.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                cols.push(current.trim());
+                cols = cols.map(c => c.replace(/^"|"$/g, '').trim());
+
+                if (cols.length >= 4) {
+                    let ticker = cols[0];
+                    let empresa = cols[1];
+                    let varSem = cols[3];
+                    if (ticker) {
+                        resultados.push({ ticker, empresa, var: varSem });
+                        count++;
+                    }
+                }
+            }
+            return resultados;
+        }
+
+        function renderizarTabla(elementId, datos, esPositivo) {
+            let html = "";
+            const colorClass = esPositivo ? "text-cubo-green" : "text-cubo-red";
+
+            datos.forEach(item => {
+                html += `
+                    <tr onclick="seleccionarTickerFundamental('${item.ticker}', true)" class="hover:bg-cubo-elevated/60 transition cursor-pointer" title="Ver análisis fundamental de ${item.ticker}">
+                        <td class="py-2 font-semibold text-white"><span class="text-cubo-sky font-mono">${item.ticker}</span></td>
+                        <td class="py-2 text-cubo-muted truncate max-w-[190px]">${item.empresa}</td>
+                        <td class="py-2 text-right font-semibold ${colorClass}">${item.var}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        function renderizarStoryTop(ganadores, perdedores) {
+            let htmlG = "";
+            ganadores.forEach(item => {
+                htmlG += `<div class="flex justify-between items-center"><span class="font-semibold text-white">${item.ticker}</span> <span class="text-[#4ADE80] font-semibold">${item.var}</span></div>`;
+            });
+            document.getElementById('story-ganadores').innerHTML = htmlG;
+
+            let htmlP = "";
+            perdedores.forEach(item => {
+                htmlP += `<div class="flex justify-between items-center"><span class="font-semibold text-white">${item.ticker}</span> <span class="text-[#F87171] font-semibold">${item.var}</span></div>`;
+            });
+            document.getElementById('story-perdedores').innerHTML = htmlP;
+        }
+
+        function aplicarPildora(id, prefijo, valor) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerText = `${prefijo}: ${valor}`;
+            el.className = `px-2 py-0.5 rounded-md border text-xs num-tabular ${obtenerClasesVariacion(valor)}`;
+        }
+
+        function actualizarInterfaz() {
+            document.getElementById('val-merval-usd').innerText = marketData.mervalUsd.val;
+            aplicarPildora('sem-merval-usd', 'Sem', marketData.mervalUsd.sem);
+            aplicarPildora('ytd-merval-usd', 'YTD', marketData.mervalUsd.ytd);
+
+            document.getElementById('val-sp500').innerText = marketData.sp500.val;
+            aplicarPildora('sem-sp500', 'Sem', marketData.sp500.sem);
+            aplicarPildora('ytd-sp500', 'YTD', marketData.sp500.ytd);
+
+            document.getElementById('val-mep').innerText = marketData.mep.val;
+            aplicarPildora('sem-mep', 'Sem', marketData.mep.sem);
+            aplicarPildora('ytd-mep', 'YTD', marketData.mep.ytd);
+
+            document.getElementById('val-riesgo').innerText = marketData.riesgo.val;
+            aplicarPildora('sem-riesgo', 'Sem', marketData.riesgo.sem);
+            aplicarPildora('ytd-riesgo', 'YTD', marketData.riesgo.ytd);
+
+            document.getElementById('val-merval-ars').innerText = marketData.mervalArs.val;
+            aplicarPildora('merval-ars-sem', 'Sem', marketData.mervalArs.sem);
+            aplicarPildora('merval-ars-ytd', 'YTD', marketData.mervalArs.ytd);
+
+            document.getElementById('val-ccl').innerText = marketData.ccl.val;
+            aplicarPildora('ccl-sem', 'Sem', marketData.ccl.sem);
+
+            document.getElementById('val-btc').innerText = marketData.btc.val;
+            aplicarPildora('btc-sem', 'Sem', marketData.btc.sem);
+
+            // Actualizar Story 9:16
+            document.getElementById('story-merval-usd').innerText = marketData.mervalUsd.val;
+            document.getElementById('story-merval-sem').innerText = `Sem: ${marketData.mervalUsd.sem}`;
+            document.getElementById('story-sp500').innerText = marketData.sp500.val;
+            document.getElementById('story-sp500-sem').innerText = `Sem: ${marketData.sp500.sem}`;
+            document.getElementById('story-mep').innerText = marketData.mep.val;
+            document.getElementById('story-mep-sem').innerText = `Sem: ${marketData.mep.sem}`;
+            document.getElementById('story-riesgo').innerText = marketData.riesgo.val;
+            document.getElementById('story-riesgo-sem').innerText = `Sem: ${marketData.riesgo.sem}`;
+            document.getElementById('tpl-rad-sp-val').innerText = marketData.sp500.val;
+            document.getElementById('tpl-rad-btc-val').innerText = marketData.btc.val;
+        }
+
+        function seleccionarPlantillaStory(tpl) {
+            ['cierre', 'radar', 'frase'].forEach(t => {
+                const el = document.getElementById(`story-tpl-${t}`);
+                const btn = document.getElementById(`tpl-btn-${t}`);
+                if (t === tpl) {
+                    el.classList.remove('hidden');
+                    if (t === 'frase') el.classList.add('flex');
+                    btn.className = "px-3 py-2 rounded-lg border border-cubo-sky bg-cubo-sky/15 text-cubo-sky font-semibold text-left transition flex items-center justify-between";
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                    btn.className = "px-3 py-2 rounded-lg border border-cubo-border bg-cubo-surface text-cubo-muted hover:text-white font-medium text-left transition flex items-center justify-between";
+                }
+            });
+        }
+
+        function descargarStoryPNG() {
+            const node = document.getElementById('story-infographic');
+            html2canvas(node, { scale: 3, useCORS: true, backgroundColor: '#141417' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `cierre-semanal-cubo.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function actualizarTextoIdea() {
+            const val = document.getElementById('input-idea-semana').value;
+            document.getElementById('story-idea-text').innerText = `"${val}"`;
+            const hero = document.getElementById('story-quote-hero');
+            if (hero) hero.innerText = `"${val}"`;
+        }
+
+        function abrirModalEdicion() { document.getElementById('modal-edicion').classList.remove('hidden'); }
+        function cerrarModalEdicion() { document.getElementById('modal-edicion').classList.add('hidden'); }
+        function guardarEdicionManual() {
+            marketData.mervalUsd.val = document.getElementById('input-merval-usd').value;
+            marketData.sp500.val = document.getElementById('input-sp500').value;
+            marketData.mep.val = document.getElementById('input-mep').value;
+            marketData.riesgo.val = document.getElementById('input-riesgo').value;
+            actualizarInterfaz();
+            cerrarModalEdicion();
+        }
+
+        // ============================================================
+        // BASE DE DATOS FUNDAMENTAL & HISTÓRICA (34 ACTIVOS)
+        // ============================================================
+        const FUNDAMENTALS_DB = {
+            "AAPL": {
+                ticker: "AAPL", empresa: "Apple Inc.", exchange: "NASDAQ", sector: "Technology",
+                price: 345.61, varSem: -0.61, varMes: 3.78, varYtd: 27.13, low52: 243.42, high52: 351.73,
+                mcap: "$5,07T", mcapNum: 5070, ev: "$4,75T", pe: 39.83, fwdPe: 36.33, eps: 8.73, peg: 1.39,
+                roe: 137.0, roa: 34.0, de: 0.78, currentRatio: 1.00,
+                grossMargin: 48.65, opMargin: 33.17, netMargin: 27.62, divYield: "0,31%", revenue: "$466,8B",
+                sourceUrl: "https://quarterchart.com/info/AAPL",
+                hist1Y: [258.4, 265.1, 272.8, 269.4, 281.5, 289.0, 301.2, 312.6, 326.4, 333.1, 332.9, 345.61]
+            },
+            "AMD": {
+                ticker: "AMD", empresa: "Advanced Micro Devices, Inc.", exchange: "NASDAQ", sector: "Technology",
+                price: 564.03, varSem: 9.14, varMes: -7.80, varYtd: 163.37, low52: 198.50, high52: 612.40,
+                mcap: "$867,3B", mcapNum: 867.3, ev: "$931,2B", pe: 92.24, fwdPe: 32.79, eps: 5.76, peg: 0.83,
+                roe: 10.0, roa: 8.0, de: 0.06, currentRatio: 2.61,
+                grossMargin: 53.20, opMargin: 15.71, netMargin: 15.58, divYield: "0,00%", revenue: "$41,3B",
+                sourceUrl: "https://quarterchart.com/info/AMD",
+                hist1Y: [214.2, 238.5, 275.0, 310.4, 349.8, 392.1, 445.0, 498.6, 552.3, 608.9, 516.8, 564.03]
+            },
+            "NVDA": {
+                ticker: "NVDA", empresa: "NVIDIA Corporation", exchange: "NASDAQ", sector: "Technology",
+                price: 217.79, varSem: 3.24, varMes: -4.64, varYtd: 16.78, low52: 164.27, high52: 243.37,
+                mcap: "$5,11T", mcapNum: 5110, ev: "$4,42T", pe: 36.34, fwdPe: 13.33, eps: 5.84, peg: 0.21,
+                roe: 110.0, roa: 60.0, de: 0.17, currentRatio: 4.59,
+                grossMargin: 74.67, opMargin: 65.21, netMargin: 63.66, divYield: "0,14%", revenue: "$303,0B",
+                sourceUrl: "https://quarterchart.com/info/NVDA",
+                hist1Y: [186.5, 194.2, 205.8, 218.0, 231.4, 239.5, 228.4, 224.0, 219.5, 210.9, 215.8, 217.79]
+            },
+            "MSFT": {
+                ticker: "MSFT", empresa: "Microsoft Corporation", exchange: "NASDAQ", sector: "Technology",
+                price: 530.44, varSem: 1.13, varMes: 3.42, varYtd: 9.68, low52: 349.20, high52: 551.15,
+                mcap: "$3,87T", mcapNum: 3870, ev: "$3,29T", pe: 30.16, fwdPe: 22.48, eps: 17.28, peg: 0.94,
+                roe: 35.0, roa: 19.0, de: 0.30, currentRatio: 1.28,
+                grossMargin: 67.94, opMargin: 46.78, netMargin: 40.31, divYield: "0,74%", revenue: "$331,8B",
+                sourceUrl: "https://quarterchart.com/info/MSFT",
+                hist1Y: [483.6, 491.2, 498.5, 505.0, 512.4, 508.9, 515.2, 519.8, 524.5, 527.1, 531.3, 530.44]
+            },
+            "GOOGL": {
+                ticker: "GOOGL", empresa: "Alphabet Inc.", exchange: "NASDAQ", sector: "Communication Services",
+                price: 323.51, varSem: 1.03, varMes: -5.98, varYtd: 3.36, low52: 267.67, high52: 408.61,
+                mcap: "$4,24T", mcapNum: 4240, ev: "$4,61T", pe: 17.55, fwdPe: 22.93, eps: 19.91, peg: 0.06,
+                roe: 51.0, roa: 26.0, de: 0.18, currentRatio: 2.72,
+                grossMargin: 60.90, opMargin: 33.12, netMargin: 54.76, divYield: "0,27%", revenue: "$445,9B",
+                sourceUrl: "https://quarterchart.com/info/GOOG",
+                hist1Y: [313.0, 325.4, 342.1, 358.9, 376.2, 364.0, 351.8, 344.1, 338.5, 329.0, 320.2, 323.51]
+            }
+        };
+
+        let listaTickersHoja = Object.keys(FUNDAMENTALS_DB);
+        let tickerSeleccionadoActual = "AAPL";
+        let modoGraficoActual = "nativo";
+        let periodoHistoricoActual = "1Y";
+        let instanciaChartHistorico = null;
+        let columnaOrdenActual = "mcapNum";
+        let ordenAscendente = false;
+
+        function inicializarSeccionFundamentales() {
+            renderizarPillsTickers();
+            filtrarScreener();
+            seleccionarTickerFundamental("AAPL", false);
+        }
+
+        function fmtPct(val, includePlus = true) {
+            if (val === null || val === undefined || isNaN(val)) return "—";
+            const sign = (includePlus && val > 0) ? "+" : "";
+            return sign + val.toFixed(2).replace('.', ',') + "%";
+        }
+
+        function fmtNum(val, dec = 2) {
+            if (val === null || val === undefined || isNaN(val)) return "—";
+            return val.toFixed(dec).replace('.', ',');
+        }
+
+        function renderizarPillsTickers() {
+            const container = document.getElementById('barra-tickers-pills');
+            if (!container) return;
+            let html = "";
+            listaTickersHoja.forEach(tk => {
+                const item = FUNDAMENTALS_DB[tk];
+                if (!item) return;
+                const activo = (tk === tickerSeleccionadoActual);
+                const cls = activo ? "bg-cubo-sky text-zinc-950 border-cubo-sky font-bold" : "bg-cubo-bg text-cubo-muted hover:text-white border-cubo-border";
+                html += `<button onclick="seleccionarTickerFundamental('${tk}', false)" class="px-2.5 py-1 rounded-lg border text-xs font-mono shrink-0 transition ${cls}">${tk}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function seleccionarTickerFundamental(ticker, hacerScroll = false) {
+            const item = FUNDAMENTALS_DB[ticker] || FUNDAMENTALS_DB["AAPL"];
+            tickerSeleccionadoActual = item.ticker;
+            renderizarPillsTickers();
+
+            document.getElementById('fund-ticker').innerText = item.ticker;
+            document.getElementById('fund-exchange').innerText = item.exchange;
+            document.getElementById('fund-sector').innerText = item.sector;
+            document.getElementById('fund-name').innerText = item.empresa;
+            document.getElementById('fund-price').innerText = '$' + fmtNum(item.price, 2);
+
+            const semStr = fmtPct(item.varSem);
+            const ytdStr = fmtPct(item.varYtd);
+            document.getElementById('fund-var-sem').innerText = `Sem: ${semStr}`;
+            document.getElementById('fund-var-ytd').innerText = `YTD: ${ytdStr}`;
+
+            document.getElementById('fund-low52').innerText = '$' + fmtNum(item.low52, 2);
+            document.getElementById('fund-high52').innerText = '$' + fmtNum(item.high52, 2);
+            let rango = item.high52 - item.low52;
+            let pct52 = rango > 0 ? Math.max(2, Math.min(100, ((item.price - item.low52) / rango) * 100)) : 50;
+            document.getElementById('fund-bar52').style.width = `${pct52.toFixed(1)}%`;
+
+            document.getElementById('fund-mcap').innerText = item.mcap;
+            document.getElementById('fund-pe').innerText = item.pe > 0 ? `${fmtNum(item.pe, 2)}x` : "N/A";
+            document.getElementById('fund-eps').innerText = item.eps > 0 ? `$${fmtNum(item.eps, 2)}` : "N/A";
+            document.getElementById('fund-roe').innerText = item.roe > 0 ? `${fmtNum(item.roe, 1)}%` : "N/A";
+
+            document.getElementById('fund-gross-margin').innerText = `${fmtNum(item.grossMargin, 2)}%`;
+            document.getElementById('bar-gross-margin').style.width = `${Math.max(2, Math.min(100, item.grossMargin))}%`;
+            document.getElementById('fund-op-margin').innerText = `${fmtNum(item.opMargin, 2)}%`;
+            document.getElementById('bar-op-margin').style.width = `${Math.max(2, Math.min(100, item.opMargin))}%`;
+            document.getElementById('fund-net-margin').innerText = `${fmtNum(item.netMargin, 2)}%`;
+            document.getElementById('bar-net-margin').style.width = `${Math.max(2, Math.min(100, item.netMargin))}%`;
+
+            renderizarGraficoHistoricoNativo(item);
+            if (hacerScroll) {
+                document.getElementById('seccion-fundamentales').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function generarSeriePorPeriodo(item, periodo) {
+            const base12 = item.hist1Y || [item.price * 0.9, item.price];
+            const mesesLabels = ["Nov 25", "Dic 25", "Ene 26", "Feb 26", "Mar 26", "Abr 26", "May 26", "Jun 26", "Jul 26", "Ago 26", "Sep 26", "Oct 26"];
+            let ret = ((base12[base12.length - 1] - base12[0]) / base12[0]) * 100;
+            return { labels: mesesLabels, valores: base12, retornoPct: ret };
+        }
+
+        function cambiarPeriodoHistorico(periodo) {
+            periodoHistoricoActual = periodo;
+            const item = FUNDAMENTALS_DB[tickerSeleccionadoActual] || FUNDAMENTALS_DB["AAPL"];
+            renderizarGraficoHistoricoNativo(item);
+        }
+
+        function renderizarGraficoHistoricoNativo(item) {
+            const serie = generarSeriePorPeriodo(item, periodoHistoricoActual);
+            const canvas = document.getElementById('canvas-precio-historico');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            if (instanciaChartHistorico) instanciaChartHistorico.destroy();
+
+            const ctx = canvas.getContext('2d');
+            instanciaChartHistorico = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: serie.labels,
+                    datasets: [{
+                        label: `${item.ticker} (USD)`,
+                        data: serie.valores,
+                        borderColor: '#4ADE80',
+                        backgroundColor: 'rgba(74, 222, 128, 0.14)',
+                        borderWidth: 2.2,
+                        fill: true,
+                        tension: 0.32
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(46, 46, 52, 0.35)' }, ticks: { color: '#A1A1AA', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(46, 46, 52, 0.35)' }, ticks: { color: '#A1A1AA', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function cambiarModoGrafico(modo) {
+            modoGraficoActual = modo;
+            document.getElementById('contenedor-grafico-nativo').classList.toggle('hidden', modo === 'tradingview');
+            document.getElementById('contenedor-grafico-tv').classList.toggle('hidden', modo !== 'tradingview');
+            if (modo === 'tradingview') {
+                const item = FUNDAMENTALS_DB[tickerSeleccionadoActual] || FUNDAMENTALS_DB["AAPL"];
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": `${item.exchange}:${item.ticker}`,
+                    "interval": "D",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "es",
+                    "container_id": "tradingview-widget-container"
+                });
+            }
+        }
+
+        function filtrarScreener() {
+            const tbody = document.getElementById('tabla-screener-body');
+            if (!tbody) return;
+            let html = "";
+            listaTickersHoja.forEach(tk => {
+                const item = FUNDAMENTALS_DB[tk];
+                if (!item) return;
+                html += `
+                    <tr onclick="seleccionarTickerFundamental('${item.ticker}', false)" class="hover:bg-cubo-elevated/50 transition cursor-pointer">
+                        <td class="py-2.5 px-3 font-mono font-bold text-cubo-sky">${item.ticker}</td>
+                        <td class="py-2.5 px-3 text-white">${item.empresa}</td>
+                        <td class="py-2.5 px-3 text-right font-semibold text-white">$${fmtNum(item.price, 2)}</td>
+                        <td class="py-2.5 px-3 text-right ${item.varSem >= 0 ? 'text-cubo-green' : 'text-cubo-red'}">${fmtPct(item.varSem)}</td>
+                        <td class="py-2.5 px-3 text-right ${item.varYtd >= 0 ? 'text-cubo-green' : 'text-cubo-red'}">${fmtPct(item.varYtd)}</td>
+                        <td class="py-2.5 px-3 text-right text-white">${item.mcap}</td>
+                        <td class="py-2.5 px-3 text-right">${item.pe}x</td>
+                        <td class="py-2.5 px-3 text-right text-cubo-green">${fmtNum(item.roe, 1)}%</td>
+                        <td class="py-2.5 px-3 text-right text-cubo-sky">${fmtNum(item.opMargin, 1)}%</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function ordenarScreener(col) {}
+        function exportarScreenerCSV() {}
+    </script>
+</body>
+</html>
