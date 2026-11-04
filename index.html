@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Francisco Combina — Monitor de Mercado & Historias</title>
+    <title>Cubo Finanzas — Monitor de Mercado & Análisis Fundamental</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: DM Sans & Roboto Mono -->
@@ -14,6 +14,10 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- html2canvas para exportar la infografía a PNG -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Chart.js 4.4.1 para gráficos históricos y comparativos nativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- TradingView Widget Library -->
+    <script src="https://s3.tradingview.com/tv.js"></script>
 
     <style>
         :root {
@@ -96,11 +100,10 @@
 </head>
 <body class="antialiased min-h-screen pb-16 selection:bg-cubo-sky/30 selection:text-cubo-text">
 
-    <!-- HEADER PRINCIPAL CON BARRA DE NAVEGACIÓN ENTRE SECCIONES -->
+    <!-- HEADER PRINCIPAL CON NAVEGACIÓN DE VISTAS (SUBPÁGINAS) -->
     <header class="bg-cubo-surface/95 backdrop-blur-md border-b border-cubo-border sticky top-0 z-40 shadow-md">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
             
-            <!-- Logo y Título -->
             <div class="flex items-center gap-3.5">
                 <div class="w-9 h-9 bg-cubo-elevated border border-cubo-sky/40 text-cubo-sky rounded-lg flex items-center justify-center shadow-inner shrink-0">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -110,31 +113,30 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-base font-bold tracking-tight text-cubo-text">FRANCISCO COMBINA</h1>
-                    <p class="text-xs text-cubo-muted">Monitor de Mercado & Historias</p>
+                    <h1 class="text-base font-bold tracking-tight text-cubo-text">CUBO FINANZAS</h1>
+                    <p class="text-xs text-cubo-muted">Monitor de Mercado & Análisis Fundamental</p>
                 </div>
             </div>
 
-            <!-- Accesos / Pestañas de Navegación -->
-            <nav class="flex items-center gap-1.5 bg-cubo-bg p-1 rounded-xl border border-cubo-border text-xs font-medium overflow-x-auto max-w-full">
-                <button onclick="cambiarSeccion('inicio')" id="nav-btn-inicio" class="px-3 py-1.5 rounded-lg bg-cubo-sky text-zinc-950 font-semibold transition whitespace-nowrap flex items-center gap-1.5">
+            <!-- Accesos a Secciones (Subpáginas SPA) -->
+            <nav class="flex items-center gap-1 bg-cubo-bg p-1 rounded-xl border border-cubo-border text-xs font-medium overflow-x-auto max-w-full">
+                <button onclick="cambiarSeccion('inicio')" id="nav-btn-inicio" class="px-3 py-1.5 rounded-lg bg-cubo-sky text-zinc-950 font-semibold transition whitespace-nowrap flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Panel General
                 </button>
                 <button onclick="cambiarSeccion('ganadores')" id="nav-btn-ganadores" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
                     <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i> Top Subas / Bajas
                 </button>
-                <button onclick="cambiarSeccion('cedears')" id="nav-btn-cedears" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
-                    <i data-lucide="repeat" class="w-3.5 h-3.5 text-cubo-sky"></i> CEDEARs & Arbitraje
+                <button onclick="cambiarSeccion('fundamentales')" id="nav-btn-fundamentales" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
+                    <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-cubo-sky"></i> Análisis Fundamental
                 </button>
                 <button onclick="cambiarSeccion('historias')" id="nav-btn-historias" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
                     <i data-lucide="smartphone" class="w-3.5 h-3.5 text-amber-400"></i> Imagen Historias
                 </button>
             </nav>
             
-            <!-- Botones de Acción Globales -->
             <div class="flex items-center gap-2 flex-wrap justify-center">
                 <span id="badge-estado" class="text-xs bg-emerald-500/10 text-emerald-400 font-medium px-2.5 py-1 rounded-lg border border-emerald-500/25 hidden sm:flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Sincronizado
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Activo
                 </span>
                 <button onclick="sincronizarTodo()" class="bg-cubo-elevated hover:opacity-85 text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Sincronizar">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cubo-sky"></i>
@@ -142,17 +144,17 @@
                 <button onclick="toggleTemaWeb()" id="btn-tema-web" class="bg-cubo-elevated hover:opacity-85 text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Cambiar Tema">
                     <i data-lucide="sun" class="w-3.5 h-3.5 text-cubo-sky"></i>
                 </button>
-                <button onclick="toggleConfigPanel()" class="bg-cubo-elevated hover:opacity-85 text-cubo-muted hover:text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Configurar URLs CSV">
+                <button onclick="toggleConfigPanel()" class="bg-cubo-elevated hover:opacity-85 text-cubo-muted hover:text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Configurar Fuentes">
                     <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL (ORGANIZADO POR VISTAS / SUBPÁGINAS) -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="max-w-6xl mx-auto px-4 sm:px-6 mt-6 space-y-6">
 
-        <!-- PANEL DE CONFIGURACIÓN DE URLS DE GOOGLE SHEETS -->
+        <!-- PANEL DE CONFIGURACIÓN -->
         <section id="panel-configuracion" class="bg-cubo-surface border border-cubo-border p-5 rounded-xl hidden space-y-4 shadow-lg">
             <div class="flex justify-between items-center border-b border-cubo-border pb-3">
                 <div class="flex items-center gap-2">
@@ -164,7 +166,6 @@
                 </div>
                 <button onclick="toggleConfigPanel()" class="text-cubo-muted hover:text-cubo-text text-xs font-medium px-2 py-1 rounded hover:bg-cubo-elevated">Cerrar ✕</button>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                 <div>
                     <label class="block font-medium text-cubo-muted mb-1">Hoja "Datos" (Principal)</label>
@@ -179,7 +180,6 @@
                     <input type="text" id="cfg-bajas-url" class="w-full border border-cubo-border p-2 rounded-lg bg-cubo-bg text-cubo-sky font-mono text-[11px] focus:outline-none focus:border-cubo-sky">
                 </div>
             </div>
-
             <div class="flex justify-between items-center border-t border-cubo-border pt-3">
                 <span class="text-xs text-cubo-muted">Se guardan localmente en tu navegador.</span>
                 <button onclick="guardarSheetURLs()" class="bg-cubo-sky text-zinc-950 hover:bg-sky-300 px-4 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
@@ -193,7 +193,7 @@
         <!-- VISTA 1: PANEL GENERAL (INICIO) -->
         <!-- ================================================================= -->
         <div id="vista-inicio" class="space-y-6">
-            <!-- RADAR DE EVENTOS Y ALERTAS DE VOLATILIDAD -->
+            <!-- Radar de Eventos -->
             <section class="bg-cubo-surface rounded-xl border border-cubo-border p-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-cubo-border">
                     <div class="flex items-center gap-2">
@@ -205,7 +205,7 @@
                 <div id="contenedor-eventos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs"></div>
             </section>
 
-            <!-- SECCIÓN: TOP 5 NOTICIAS DEL DÍA -->
+            <!-- Top 5 Noticias del Día -->
             <section class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cubo-border pb-3">
                     <div class="flex items-center gap-2">
@@ -213,12 +213,7 @@
                         <h3 class="text-sm font-semibold text-cubo-text">Top 5 Noticias del Día</h3>
                         <span class="text-[10px] bg-cubo-sky/10 text-cubo-sky px-2 py-0.5 rounded border border-cubo-sky/20 font-medium">RSS en Vivo</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span id="fecha-noticias" class="text-[10px] font-mono text-cubo-muted bg-cubo-elevated px-2.5 py-1 rounded-lg border border-cubo-border">Buscando titulares...</span>
-                        <button onclick="cargarNoticiasEnVivoDirecto(true)" class="text-[11px] bg-cubo-elevated hover:border-cubo-sky text-cubo-text px-2.5 py-1 rounded-lg border border-cubo-border transition flex items-center gap-1">
-                            <i data-lucide="rotate-cw" class="w-3 h-3 text-cubo-sky"></i> Actualizar
-                        </button>
-                    </div>
+                    <span id="fecha-noticias" class="text-[10px] font-mono text-cubo-muted bg-cubo-elevated px-2.5 py-1 rounded-lg border border-cubo-border">Buscando titulares...</span>
                 </div>
                 <div id="seccion-noticias-dia" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                     <div class="text-xs text-cubo-muted text-center py-6 col-span-5 flex items-center justify-center gap-2">
@@ -227,7 +222,7 @@
                 </div>
             </section>
 
-            <!-- 1. INDICADORES PRINCIPALES DE MERCADO -->
+            <!-- Indicadores Principales -->
             <section>
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
@@ -238,11 +233,10 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                    <!-- S&P Merval USD -->
                     <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border hover:border-cubo-sky/40 transition flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-xs font-medium text-cubo-muted">S&P Merval en USD</span>
-                            <span class="text-[10px] font-medium text-cubo-sky bg-cubo-sky/10 px-2 py-0.5 rounded border border-cubo-sky/20">CCL</span>
+                            <span class="text-[10px] font-medium text-cubo-sky bg-cubo-sky/10 px-2 py-0.5 rounded">CCL</span>
                         </div>
                         <div class="flex items-end justify-between my-1.5">
                             <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-merval-usd">$1.693</div>
@@ -254,11 +248,10 @@
                         </div>
                     </div>
 
-                    <!-- SP500 -->
                     <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border hover:border-cubo-sky/40 transition flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-xs font-medium text-cubo-muted">S&P 500</span>
-                            <span class="text-[10px] font-medium text-cubo-muted bg-cubo-elevated px-2 py-0.5 rounded border border-cubo-border">EE.UU.</span>
+                            <span class="text-[10px] font-medium text-cubo-muted bg-cubo-elevated px-2 py-0.5 rounded">EE.UU.</span>
                         </div>
                         <div class="flex items-end justify-between my-1.5">
                             <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-sp500">$7.719</div>
@@ -270,11 +263,10 @@
                         </div>
                     </div>
 
-                    <!-- Dólar MEP -->
                     <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border hover:border-cubo-sky/40 transition flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-xs font-medium text-cubo-muted">Dólar MEP</span>
-                            <span class="text-[10px] font-medium text-cubo-muted bg-cubo-elevated px-2 py-0.5 rounded border border-cubo-border">Local</span>
+                            <span class="text-[10px] font-medium text-cubo-muted bg-cubo-elevated px-2 py-0.5 rounded">Local</span>
                         </div>
                         <div class="flex items-end justify-between my-1.5">
                             <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-mep">$1.578</div>
@@ -286,11 +278,10 @@
                         </div>
                     </div>
 
-                    <!-- Riesgo País -->
                     <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border border-l-2 border-l-cubo-sky hover:border-cubo-sky/40 transition flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-xs font-medium text-cubo-muted">Riesgo País</span>
-                            <span class="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">EMBI+</span>
+                            <span class="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">EMBI+</span>
                         </div>
                         <div class="flex items-end justify-between my-1.5">
                             <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-riesgo">741</div>
@@ -300,43 +291,6 @@
                             <span id="sem-riesgo" class="px-2 py-0.5 rounded-md border">Sem: -2,9%</span>
                             <span id="ytd-riesgo" class="px-2 py-0.5 rounded-md border">YTD: +31,0%</span>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 2. BLOQUE SECUNDARIO: MERVAL ARS, CCL & BTC -->
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
-                <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border flex flex-col justify-between">
-                    <div class="flex justify-between items-center border-b border-cubo-border pb-2 mb-2.5">
-                        <span class="text-xs font-medium text-cubo-muted">S&P Merval (ARS)</span>
-                        <span class="text-[10px] bg-cubo-sky/10 text-cubo-sky font-medium px-2 py-0.5 rounded border border-cubo-sky/20">Pesos</span>
-                    </div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-xl font-bold text-cubo-text num-tabular" id="val-merval-ars">$2.848.945</span>
-                        <div class="flex gap-1.5 text-xs num-tabular">
-                            <span id="merval-ars-sem" class="px-2 py-0.5 rounded-md border">Sem: +0,7%</span>
-                            <span id="merval-ars-ytd" class="px-2 py-0.5 rounded-md border">YTD: -6,6%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border flex flex-col justify-between">
-                    <div class="flex justify-between items-center border-b border-cubo-border pb-2 mb-2.5">
-                        <span class="text-xs font-medium text-cubo-muted">Dólar CCL</span>
-                        <span class="text-[10px] bg-cubo-elevated text-cubo-muted font-medium px-2 py-0.5 rounded border border-cubo-border">Referencia</span>
-                    </div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-xl font-bold text-cubo-text num-tabular" id="val-ccl">$1.654</span>
-                        <span class="text-xs num-tabular px-2 py-0.5 rounded-md border" id="ccl-sem">Sem: -0,3%</span>
-                    </div>
-                </div>
-                <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border flex flex-col justify-between">
-                    <div class="flex justify-between items-center border-b border-cubo-border pb-2 mb-2.5">
-                        <span class="text-xs font-medium text-cubo-muted">Bitcoin (BTC)</span>
-                        <span class="text-[10px] bg-cubo-elevated text-cubo-muted font-medium px-2 py-0.5 rounded border border-cubo-border">Cripto</span>
-                    </div>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-xl font-bold text-cubo-text num-tabular" id="val-btc">$78.250</span>
-                        <span class="text-xs num-tabular px-2 py-0.5 rounded-md border" id="btc-sem">Sem: -2,8%</span>
                     </div>
                 </div>
             </section>
@@ -355,20 +309,19 @@
                     </div>
                     <div class="relative w-full sm:w-72">
                         <i data-lucide="search" class="w-3.5 h-3.5 text-cubo-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="input-filtro-acciones" oninput="filtrarTablasAcciones()" placeholder="Buscar ticker o empresa (ej. NVDA, TSLA)..." class="w-full bg-cubo-surface border border-cubo-border rounded-lg pl-8 pr-7 py-1.5 text-xs text-cubo-text placeholder:text-cubo-muted focus:outline-none focus:border-cubo-sky transition">
+                        <input type="text" id="input-filtro-acciones" oninput="filtrarTablasAcciones()" placeholder="Buscar ticker o empresa..." class="w-full bg-cubo-surface border border-cubo-border rounded-lg pl-8 pr-7 py-1.5 text-xs text-cubo-text placeholder:text-cubo-muted focus:outline-none focus:border-cubo-sky transition">
                         <button id="btn-limpiar-filtro" onclick="limpiarFiltroAcciones()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-cubo-muted hover:text-cubo-text text-xs">✕</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Top Ganadores -->
                     <div class="bg-cubo-bg rounded-xl border border-cubo-border overflow-hidden">
                         <div class="bg-cubo-surface px-4 py-3 border-b border-cubo-border flex justify-between items-center">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                                 <h3 class="font-semibold text-xs text-cubo-text">Principales Ganadores (EE.UU.)</h3>
                             </div>
-                            <span id="contador-ganadores" class="text-[11px] bg-emerald-500/10 text-emerald-400 font-medium px-2 py-0.5 rounded border border-emerald-500/25">Top 5 Subas</span>
+                            <span id="contador-ganadores" class="text-[11px] bg-emerald-500/10 text-emerald-400 font-medium px-2 py-0.5 rounded">Top 5 Subas</span>
                         </div>
                         <div class="p-3">
                             <table class="w-full text-left text-xs num-tabular">
@@ -384,14 +337,13 @@
                         </div>
                     </div>
 
-                    <!-- Top Perdedores -->
                     <div class="bg-cubo-bg rounded-xl border border-cubo-border overflow-hidden">
                         <div class="bg-cubo-surface px-4 py-3 border-b border-cubo-border flex justify-between items-center">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-rose-400"></span>
                                 <h3 class="font-semibold text-xs text-cubo-text">Principales Perdedores (EE.UU.)</h3>
                             </div>
-                            <span id="contador-perdedores" class="text-[11px] bg-rose-500/10 text-rose-400 font-medium px-2 py-0.5 rounded border border-rose-500/25">Top 5 Bajas</span>
+                            <span id="contador-perdedores" class="text-[11px] bg-rose-500/10 text-rose-400 font-medium px-2 py-0.5 rounded">Top 5 Bajas</span>
                         </div>
                         <div class="p-3">
                             <table class="w-full text-left text-xs num-tabular">
@@ -412,53 +364,135 @@
 
 
         <!-- ================================================================= -->
-        <!-- VISTA 3: CEDEARS & ARBITRAJE -->
+        <!-- VISTA 3: ANÁLISIS FUNDAMENTAL & HISTÓRICO (NUEVO) -->
         <!-- ================================================================= -->
-        <div id="vista-cedears" class="space-y-4 hidden">
-            <section class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-4">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cubo-border pb-3.5">
+        <div id="vista-fundamentales" class="space-y-4 hidden">
+            <section class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-5">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-cubo-border pb-4">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
-                            <h3 class="text-sm font-semibold text-cubo-text">Monitor de CEDEARs & Arbitraje de CCL Implícito</h3>
+                            <h2 class="text-sm font-semibold text-white">Análisis Fundamental & Histórico de Precios (EE.UU.)</h2>
+                            <span id="badge-tickers-count" class="text-[10px] font-mono bg-cubo-sky/10 text-cubo-sky px-2 py-0.5 rounded border border-cubo-sky/25">Cartera Global</span>
                         </div>
-                        <p class="text-xs text-cubo-muted mt-0.5">Editá el precio en USD o en ARS de cualquier fila para simular arbitrajes contra el Dólar CCL de referencia.</p>
+                        <p class="text-xs text-cubo-muted mt-1">Múltiplos de valuación, rentabilidad, solvencia, márgenes operativos y evolución histórica de precios.</p>
                     </div>
 
-                    <div class="flex items-center gap-2 flex-wrap num-tabular text-xs">
-                        <div class="bg-cubo-bg px-3 py-1.5 rounded-lg border border-cubo-border">
-                            <span class="text-cubo-muted text-[11px]">MEP:</span>
-                            <span id="cedear-ref-mep" class="font-bold text-cubo-text ml-1">$1.565</span>
+                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                        <div class="relative flex-1 sm:flex-initial sm:w-52">
+                            <input type="text" id="input-buscar-ticker" oninput="filtrarScreener()" placeholder="Buscar ticker o empresa..." class="w-full bg-cubo-bg border border-cubo-border rounded-lg pl-3 pr-7 py-1.5 text-xs text-white focus:border-cubo-sky focus:outline-none">
                         </div>
-                        <div class="bg-cubo-bg px-3 py-1.5 rounded-lg border border-cubo-border">
-                            <span class="text-cubo-muted text-[11px]">CCL Ref:</span>
-                            <span id="cedear-ref-ccl" class="font-bold text-cubo-sky ml-1">$1.654</span>
-                        </div>
-                        <div class="bg-cubo-sky/10 px-3 py-1.5 rounded-lg border border-cubo-sky/25">
-                            <span class="text-cubo-sky text-[11px]">Canje (Brecha):</span>
-                            <span id="cedear-brecha-ccl-mep" class="font-bold text-cubo-sky ml-1">+5,68%</span>
-                        </div>
-                        <button onclick="recalcularCedearsConCCLOficial()" class="bg-cubo-elevated hover:opacity-85 text-cubo-text px-2.5 py-1.5 rounded-lg border border-cubo-border text-[11px] font-medium flex items-center gap-1">
-                            <i data-lucide="rotate-ccw" class="w-3 h-3 text-cubo-sky"></i> Alinear al CCL
-                        </button>
+                        <select id="select-sector-filtro" onchange="filtrarScreener()" class="bg-cubo-bg border border-cubo-border rounded-lg px-2.5 py-1.5 text-xs text-cubo-text focus:border-cubo-sky focus:outline-none">
+                            <option value="ALL">Todos los Sectores</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Financial Services">Financial Services</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Consumer Defensive">Consumer Defensive</option>
+                            <option value="Consumer Cyclical">Consumer Cyclical</option>
+                            <option value="Communication Services">Communication Services</option>
+                            <option value="Energy">Energy</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs num-tabular">
-                        <thead>
-                            <tr class="text-cubo-muted border-b border-cubo-border text-[11px]">
-                                <th class="py-2 px-2 font-medium">Ticker</th>
-                                <th class="py-2 px-2 font-medium">Subyacente</th>
-                                <th class="py-2 px-2 font-medium text-center">Ratio Conv.</th>
-                                <th class="py-2 px-2 font-medium text-right">Precio EE.UU. (USD)</th>
-                                <th class="py-2 px-2 font-medium text-right">Precio Local (ARS)</th>
-                                <th class="py-2 px-2 font-medium text-right">CCL Implícito</th>
-                                <th class="py-2 px-2 font-medium text-right">Desfasaje vs CCL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-cedears" class="divide-y divide-cubo-border/50 text-cubo-text"></tbody>
-                    </table>
+                <!-- Píldoras de selección rápida de tickers -->
+                <div class="space-y-1.5">
+                    <div class="text-[11px] text-cubo-muted">Seleccioná un activo para inspeccionar su ficha fundamental y gráfico:</div>
+                    <div id="barra-tickers-pills" class="flex items-center gap-1.5 overflow-x-auto pb-2 pt-0.5"></div>
+                </div>
+
+                <!-- Panel Dividido Ficha Fundamental (Izquierda) + Gráfico Histórico (Derecha) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                    <!-- Ficha Fundamental -->
+                    <div class="lg:col-span-5 bg-cubo-bg rounded-xl border border-cubo-border p-4 flex flex-col justify-between space-y-4">
+                        <div class="border-b border-cubo-border pb-3.5">
+                            <div class="flex justify-between items-start gap-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span id="fund-ticker" class="text-lg font-bold text-white font-mono tracking-tight">AAPL</span>
+                                        <span id="fund-exchange" class="text-[10px] font-mono uppercase bg-cubo-elevated text-cubo-muted px-2 py-0.5 rounded border">NASDAQ</span>
+                                        <span id="fund-sector" class="text-[10px] font-medium bg-cubo-sky/10 text-cubo-sky px-2 py-0.5 rounded">Technology</span>
+                                    </div>
+                                    <h3 id="fund-name" class="text-xs font-medium text-cubo-muted mt-0.5">Apple Inc.</h3>
+                                </div>
+                                <div class="text-right num-tabular">
+                                    <div id="fund-price" class="text-xl font-bold text-white">$231,50</div>
+                                    <div class="flex items-center justify-end gap-1 mt-1">
+                                        <span id="fund-var-sem" class="text-[10px] px-1.5 py-0.5 rounded border">Sem: +1,2%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-[11px] font-semibold text-white uppercase tracking-wider mb-2">Múltiplos Clave</div>
+                            <div class="grid grid-cols-2 gap-2 num-tabular text-xs">
+                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
+                                    <div class="text-[10px] text-cubo-muted">Market Cap</div>
+                                    <div id="fund-mcap" class="text-sm font-bold text-white mt-0.5">$3,52T</div>
+                                </div>
+                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
+                                    <div class="text-[10px] text-cubo-muted">P/E Ratio</div>
+                                    <div id="fund-pe" class="text-sm font-bold text-white mt-0.5">32,4x</div>
+                                </div>
+                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
+                                    <div class="text-[10px] text-cubo-muted">EPS</div>
+                                    <div id="fund-eps" class="text-sm font-bold text-white mt-0.5">$7,15</div>
+                                </div>
+                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
+                                    <div class="text-[10px] text-cubo-muted">ROE</div>
+                                    <div id="fund-roe" class="text-sm font-bold text-cubo-green mt-0.5">145%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-cubo-surface p-3 rounded-lg border border-cubo-border space-y-2 num-tabular text-xs">
+                            <div class="text-[11px] font-semibold text-white mb-1">Márgenes Operativos</div>
+                            <div>
+                                <div class="flex justify-between text-[10px] mb-0.5"><span class="text-cubo-muted">Margen Operativo</span><span id="fund-op-margin" class="font-bold text-cubo-sky">31,5%</span></div>
+                                <div class="w-full h-1.5 bg-cubo-bg rounded-full overflow-hidden"><div id="bar-op-margin" class="h-full bg-cubo-sky rounded-full" style="width: 31.5%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Histórico -->
+                    <div class="lg:col-span-7 bg-cubo-bg rounded-xl border border-cubo-border p-4 flex flex-col justify-between space-y-3.5">
+                        <div class="flex justify-between items-center border-b border-cubo-border pb-3">
+                            <div class="flex items-center gap-1.5 bg-cubo-surface p-1 rounded-lg border border-cubo-border text-xs">
+                                <button id="btn-modo-nativo" onclick="cambiarModoGrafico('nativo')" class="px-2.5 py-1 rounded-md font-semibold bg-cubo-sky text-zinc-950 transition">Serie Histórica</button>
+                                <button id="btn-modo-tv" onclick="cambiarModoGrafico('tradingview')" class="px-2.5 py-1 rounded-md font-medium text-cubo-muted hover:text-white transition">TradingView</button>
+                            </div>
+                            <div class="text-xs text-cubo-muted">Evolución de Precio (USD)</div>
+                        </div>
+
+                        <div id="contenedor-grafico-nativo" class="relative h-80 w-full bg-cubo-surface/60 rounded-xl border border-cubo-border p-3">
+                            <canvas id="canvas-precio-historico"></canvas>
+                        </div>
+                        <div id="contenedor-grafico-tv" class="hidden h-96 w-full bg-cubo-surface rounded-xl border border-cubo-border overflow-hidden relative">
+                            <div id="tradingview-widget-container" class="w-full h-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla Screener -->
+                <div class="bg-cubo-bg rounded-xl border border-cubo-border overflow-hidden">
+                    <div class="bg-cubo-surface px-4 py-3 border-b border-cubo-border font-semibold text-xs text-white">Screener de Acciones Globales</div>
+                    <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                        <table class="w-full text-left text-xs num-tabular border-collapse">
+                            <thead class="bg-cubo-surface sticky top-0 z-10 text-[10px] uppercase text-cubo-muted">
+                                <tr>
+                                    <th class="py-2 px-3 font-semibold">Ticker</th>
+                                    <th class="py-2 px-3 font-semibold">Empresa / Sector</th>
+                                    <th class="py-2 px-3 font-semibold text-right">Precio (USD)</th>
+                                    <th class="py-2 px-3 font-semibold text-right">Sem %</th>
+                                    <th class="py-2 px-3 font-semibold text-right">YTD %</th>
+                                    <th class="py-2 px-3 font-semibold text-right">Market Cap</th>
+                                    <th class="py-2 px-3 font-semibold text-right">P/E</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-screener-body" class="divide-y divide-cubo-border/50 text-cubo-text"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>
@@ -475,235 +509,28 @@
                             <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
                             <h3 class="text-sm font-semibold text-cubo-text">Estudio de Infografías para Historias (9:16)</h3>
                         </div>
-                        <p class="text-xs text-cubo-muted mt-0.5">4 plantillas intercambiables, marcas de agua editables y cubos isométricos de fondo.</p>
+                        <p class="text-xs text-cubo-muted mt-0.5">Plantillas profesionales para redes sociales.</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="abrirModalRedes()" class="flex items-center gap-1.5 bg-cubo-elevated hover:opacity-85 text-cubo-text px-3.5 py-1.5 rounded-lg text-xs font-medium transition border border-cubo-border">
-                            <i data-lucide="copy" class="w-3.5 h-3.5 text-cubo-sky"></i> Copiar Texto Redes
-                        </button>
-                        <button onclick="descargarStoryPNG()" class="flex items-center gap-1.5 bg-cubo-sky hover:bg-sky-300 text-zinc-950 px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar PNG
-                        </button>
-                    </div>
+                    <button onclick="descargarStoryPNG()" class="flex items-center gap-1.5 bg-cubo-sky hover:bg-sky-300 text-zinc-950 px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar PNG
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <!-- PANEL DE PERSONALIZACIÓN (5 COLUMNAS) -->
-                    <div class="lg:col-span-5 bg-cubo-bg p-4 rounded-xl border border-cubo-border space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-cubo-sky mb-2 flex items-center gap-1.5">
-                                <i data-lucide="layout-template" class="w-3.5 h-3.5"></i> 1. Elegir Plantilla de Historia:
-                            </label>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <button onclick="seleccionarPlantillaStory('cierre')" id="tpl-btn-cierre" class="px-3 py-2 rounded-lg border border-cubo-sky bg-cubo-sky/15 text-cubo-sky font-semibold text-left transition flex items-center justify-between">
-                                    <span>Cierre Mercados</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-cubo-sky"></span>
-                                </button>
-                                <button onclick="seleccionarPlantillaStory('cedears')" id="tpl-btn-cedears" class="px-3 py-2 rounded-lg border border-cubo-border bg-cubo-surface text-cubo-muted hover:text-cubo-text font-medium text-left transition flex items-center justify-between">
-                                    <span>Foco CEDEARs</span>
-                                </button>
-                                <button onclick="seleccionarPlantillaStory('radar')" id="tpl-btn-radar" class="px-3 py-2 rounded-lg border border-cubo-border bg-cubo-surface text-cubo-muted hover:text-cubo-text font-medium text-left transition flex items-center justify-between">
-                                    <span>Radar Global & BTC</span>
-                                </button>
-                                <button onclick="seleccionarPlantillaStory('frase')" id="tpl-btn-frase" class="px-3 py-2 rounded-lg border border-cubo-border bg-cubo-surface text-cubo-muted hover:text-cubo-text font-medium text-left transition flex items-center justify-between">
-                                    <span>Tesis / Quote Card</span>
-                                </button>
+                <div class="flex justify-center bg-cubo-bg p-6 rounded-xl border border-cubo-border">
+                    <div id="story-infographic" class="w-[330px] h-[500px] bg-[#141417] text-white p-4 rounded-2xl flex flex-col justify-between shadow-2xl relative overflow-hidden border border-[#2C2C32] select-none shrink-0">
+                        <div class="border-b border-[#2C2C32] pb-2 flex justify-between items-center">
+                            <span class="text-[9px] font-bold text-[#38BDF8] uppercase tracking-wider">CUBO FINANZAS</span>
+                            <span class="text-[9px] font-medium text-[#A1A1AA]">Cierre Semanal</span>
+                        </div>
+                        <div class="space-y-2 my-auto">
+                            <div class="bg-[#1E1E22]/90 p-3 rounded-lg border border-[#2E2E34] text-center">
+                                <span class="text-[8px] text-[#A1A1AA] uppercase block">MERVAL USD</span>
+                                <span class="text-base font-bold text-white" id="story-merval-usd">$1.693</span>
                             </div>
                         </div>
-
-                        <div id="controles-activos-cierre" class="border-t border-cubo-border pt-3 space-y-3">
-                            <div>
-                                <label class="block text-xs font-medium text-cubo-muted mb-2">Indicadores en Grilla:</label>
-                                <div class="grid grid-cols-2 gap-1.5 text-xs">
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition">
-                                        <input type="checkbox" id="chk-merval-usd" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">Merval USD</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition">
-                                        <input type="checkbox" id="chk-sp500" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">S&P 500</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition">
-                                        <input type="checkbox" id="chk-mep" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">Dólar MEP</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition">
-                                        <input type="checkbox" id="chk-riesgo" checked onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">Riesgo País</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition">
-                                        <input type="checkbox" id="chk-ccl" onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">Dólar CCL</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition">
-                                        <input type="checkbox" id="chk-btc" onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">Bitcoin</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-cubo-surface px-2.5 py-1.5 rounded-lg border border-cubo-border cursor-pointer hover:border-cubo-sky/50 transition col-span-2">
-                                        <input type="checkbox" id="chk-merval-ars" onchange="actualizarVisibilidadActivos()" class="accent-cubo-sky">
-                                        <span class="text-cubo-text text-xs">S&P Merval (ARS)</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-cubo-muted mb-1.5">Cuadros Acciones EE.UU.:</label>
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <label class="flex items-center gap-2 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/25 cursor-pointer">
-                                        <input type="checkbox" id="chk-story-ganadores" checked onchange="actualizarVisibilidadActivos()" class="accent-emerald-400">
-                                        <span class="text-emerald-400 font-medium text-xs">Top 3 Subas</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-rose-500/10 px-2.5 py-1.5 rounded-lg border border-rose-500/25 cursor-pointer">
-                                        <input type="checkbox" id="chk-story-perdedores" checked onchange="actualizarVisibilidadActivos()" class="accent-rose-400">
-                                        <span class="text-rose-400 font-medium text-xs">Top 3 Bajas</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-cubo-border pt-3">
-                            <label class="block text-xs font-medium text-cubo-muted mb-1">2. Frase / Tesis de la Semana:</label>
-                            <textarea id="input-idea-semana" oninput="actualizarTextoIdea()" rows="2" class="w-full border border-cubo-border p-2 rounded-lg text-xs text-cubo-text bg-cubo-surface focus:border-cubo-sky focus:outline-none leading-relaxed" placeholder="Escribí acá tu reflexión..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- PREVISUALIZACIÓN DE LA HISTORIA 9:16 -->
-                    <div class="lg:col-span-7 flex justify-center bg-cubo-bg p-6 rounded-xl border border-cubo-border overflow-x-auto">
-                        <div id="story-infographic" class="w-[330px] h-[500px] bg-[#141417] text-white p-4 rounded-2xl flex flex-col justify-between shadow-2xl relative overflow-hidden border border-[#2C2C32] select-none shrink-0">
-                            
-                            <!-- FONDO GEOMÉTRICO: CUBOS ISOMÉTRICOS -->
-                            <svg class="absolute -top-10 -right-10 w-52 h-52 text-[#38BDF8] opacity-[0.08] pointer-events-none" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <polygon points="100,15 175,58 175,142 100,185 25,142 25,58" stroke="currentColor" stroke-width="2"/>
-                                <polyline points="25,58 100,100 175,58" stroke="currentColor" stroke-width="2"/>
-                                <line x1="100" y1="100" x2="100" y2="185" stroke="currentColor" stroke-width="2"/>
-                                <polygon points="100,50 145,76 145,126 100,152 55,126 55,76" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/>
-                                <polyline points="55,76 100,101 145,76" stroke="currentColor" stroke-width="1.5"/>
-                                <line x1="100" y1="101" x2="100" y2="152" stroke="currentColor" stroke-width="1.5"/>
-                            </svg>
-
-                            <!-- Header de la Historia -->
-                            <div class="relative z-10 border-b border-[#2C2C32] pb-2 flex justify-between items-center">
-                                <div class="flex items-center gap-1.5 bg-[#38BDF8]/10 border border-[#38BDF8]/30 px-2.5 py-0.5 rounded-md">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#38BDF8]"></span>
-                                    <span id="story-header-badge" class="text-[9px] font-bold text-[#38BDF8] uppercase tracking-wider">CIERRE SEMANAL</span>
-                                </div>
-                                <span id="story-header-sub" class="text-[9px] font-medium text-[#A1A1AA]">Principales Variables</span>
-                            </div>
-
-                            <!-- PLANTILLA 1: CIERRE DE MERCADOS -->
-                            <div id="story-tpl-cierre" class="relative z-10 space-y-2 my-auto py-1">
-                                <div id="story-grid-container" class="grid grid-cols-2 gap-1.5 num-tabular">
-                                    <div class="bg-[#1E1E22]/90 backdrop-blur-xs p-2 rounded-lg border border-[#2E2E34] flex flex-col justify-between" id="story-card-merval-usd">
-                                        <div class="flex justify-between items-baseline">
-                                            <span class="text-[8px] font-semibold text-[#A1A1AA] uppercase">MERVAL USD</span>
-                                            <span class="text-[11px] font-bold text-white" id="story-merval-usd">$1.693</span>
-                                        </div>
-                                        <div class="flex justify-between text-[7.5px] font-medium mt-1 pt-1 border-t border-[#2C2C32]">
-                                            <span id="story-merval-sem">Sem: -3,4%</span>
-                                            <span id="story-merval-ytd">YTD: -15,5%</span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-[#1E1E22]/90 backdrop-blur-xs p-2 rounded-lg border border-[#2E2E34] flex flex-col justify-between" id="story-card-sp500">
-                                        <div class="flex justify-between items-baseline">
-                                            <span class="text-[8px] font-semibold text-[#A1A1AA] uppercase">S&P 500</span>
-                                            <span class="text-[11px] font-bold text-white" id="story-sp500">$7.719</span>
-                                        </div>
-                                        <div class="flex justify-between text-[7.5px] font-medium mt-1 pt-1 border-t border-[#2C2C32]">
-                                            <span id="story-sp500-sem">Sem: +1,3%</span>
-                                            <span id="story-sp500-ytd">YTD: +12,8%</span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-[#1E1E22]/90 backdrop-blur-xs p-2 rounded-lg border border-[#2E2E34] flex flex-col justify-between" id="story-card-mep">
-                                        <div class="flex justify-between items-baseline">
-                                            <span class="text-[8px] font-semibold text-[#A1A1AA] uppercase">DÓLAR MEP</span>
-                                            <span class="text-[11px] font-bold text-white" id="story-mep">$1.578</span>
-                                        </div>
-                                        <div class="flex justify-between text-[7.5px] font-medium mt-1 pt-1 border-t border-[#2C2C32]">
-                                            <span id="story-mep-sem">Sem: +0,9%</span>
-                                            <span id="story-mep-ytd">YTD: +6,2%</span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-[#1E1E22]/90 backdrop-blur-xs p-2 rounded-lg border border-[#2E2E34] flex flex-col justify-between" id="story-card-riesgo">
-                                        <div class="flex justify-between items-baseline">
-                                            <span class="text-[8px] font-semibold text-[#A1A1AA] uppercase">RIESGO PAÍS</span>
-                                            <span class="text-[11px] font-bold text-white" id="story-riesgo">741</span>
-                                        </div>
-                                        <div class="flex justify-between text-[7.5px] font-medium mt-1 pt-1 border-t border-[#2C2C32]">
-                                            <span id="story-riesgo-sem">Sem: -2,9%</span>
-                                            <span id="story-riesgo-ytd">YTD: +31,0%</span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-[#1E1E22]/90 backdrop-blur-xs p-2 rounded-lg border border-[#2E2E34] flex flex-col justify-between hidden" id="story-card-ccl">
-                                        <div class="flex justify-between items-baseline">
-                                            <span class="text-[8px] font-semibold text-[#A1A1AA] uppercase">DÓLAR CCL</span>
-                                            <span class="text-[11px] font-bold text-white" id="story-ccl">$1.654</span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-[#1E1E22]/90 backdrop-blur-xs p-2 rounded-lg border border-[#2E2E34] flex flex-col justify-between hidden" id="story-card-btc">
-                                        <div class="flex justify-between items-baseline">
-                                            <span class="text-[8px] font-semibold text-[#A1A1AA] uppercase">BITCOIN</span>
-                                            <span class="text-[11px] font-bold text-white" id="story-btc">$78.250</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-1.5 num-tabular mt-2">
-                                    <div id="story-box-ganadores" class="bg-[#1E1E22]/90 border border-[#4ADE80]/25 p-2 rounded-lg">
-                                        <p class="text-[8px] font-semibold text-[#4ADE80] mb-1">Top 3 Subas</p>
-                                        <div id="story-ganadores" class="space-y-0.5 text-[8px]"></div>
-                                    </div>
-                                    <div id="story-box-perdedores" class="bg-[#1E1E22]/90 border border-[#F87171]/25 p-2 rounded-lg">
-                                        <p class="text-[8px] font-semibold text-[#F87171] mb-1">Top 3 Bajas</p>
-                                        <div id="story-perdedores" class="space-y-0.5 text-[8px]"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- PLANTILLA 2: CEDEARS -->
-                            <div id="story-tpl-cedears" class="relative z-10 space-y-2.5 my-auto py-1 hidden num-tabular">
-                                <div class="grid grid-cols-3 gap-1.5 text-center">
-                                    <div class="bg-[#1E1E22]/90 p-2 rounded-lg"><span class="text-[7.5px] text-[#A1A1AA] block">MEP</span><span id="tpl-ced-mep" class="text-[11px] font-bold">$1.565</span></div>
-                                    <div class="bg-[#1E1E22]/90 p-2 rounded-lg"><span class="text-[7.5px] text-[#38BDF8] block">CCL</span><span id="tpl-ced-ccl" class="text-[11px] font-bold">$1.654</span></div>
-                                    <div class="bg-[#38BDF8]/10 p-2 rounded-lg"><span class="text-[7.5px] text-[#38BDF8] block">BRECHA</span><span id="tpl-ced-brecha" class="text-[11px] font-bold">+5,68%</span></div>
-                                </div>
-                                <div class="bg-[#1E1E22]/90 border border-[#2E2E34] rounded-lg p-2.5 space-y-1.5" id="story-tabla-cedears"></div>
-                            </div>
-
-                            <!-- PLANTILLA 3: RADAR -->
-                            <div id="story-tpl-radar" class="relative z-10 space-y-2 my-auto py-1 hidden num-tabular">
-                                <div class="bg-[#1E1E22]/90 p-3 rounded-xl border border-[#2E2E34] flex justify-between items-center">
-                                    <div>
-                                        <span class="text-[8px] font-bold text-[#38BDF8] block">S&P 500 INDEX</span>
-                                        <div class="flex gap-2 text-[8px] font-semibold mt-1"><span class="text-[#4ADE80]">Sem: +1,3%</span></div>
-                                    </div>
-                                    <span id="tpl-rad-sp-val" class="text-base font-bold text-white">$7.719</span>
-                                </div>
-                                <div class="bg-[#1E1E22]/90 p-3 rounded-xl border border-[#2E2E34] flex justify-between items-center">
-                                    <div>
-                                        <span class="text-[8px] font-bold text-[#4ADE80] block">BITCOIN (BTC)</span>
-                                        <div class="flex gap-2 text-[8px] font-semibold mt-1"><span class="text-[#F87171]">Sem: -2,8%</span></div>
-                                    </div>
-                                    <span id="tpl-rad-btc-val" class="text-base font-bold text-white">$78.250</span>
-                                </div>
-                            </div>
-
-                            <!-- PLANTILLA 4: FRASE -->
-                            <div id="story-tpl-frase" class="relative z-10 my-auto py-2 hidden flex-col justify-between space-y-4">
-                                <div class="bg-[#1E1E22]/90 border border-[#2E2E34] p-4 rounded-xl relative">
-                                    <p id="story-quote-hero" class="text-xs font-medium leading-relaxed text-white">Consistencia y tendencia: Medir el pulso real de los activos en pesos y dólares.</p>
-                                </div>
-                            </div>
-
-                            <!-- Idea / Reflexión -->
-                            <div id="story-idea-box" class="relative z-10 bg-[#1E1E22]/90 border-l-2 border-[#38BDF8] p-2 rounded-r-lg text-left">
-                                <p id="story-idea-text" class="text-[9px] font-normal leading-snug text-[#E4E4E7]">"Consistencia y tendencia: Medir el pulso real de los activos en pesos y dólares."</p>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class="relative z-10 border-t border-[#2C2C32] pt-2 flex justify-between items-center text-[8.5px]">
-                                <span id="story-wm-left-text" class="text-[#A1A1AA]">mercado & finanzas</span>
-                                <span id="story-wm-right-text" class="text-[#38BDF8] font-semibold">@francombina7</span>
-                            </div>
-
+                        <div class="border-t border-[#2C2C32] pt-2 flex justify-between items-center text-[8.5px]">
+                            <span class="text-[#A1A1AA]">cubofinanzas.com</span>
+                            <span class="text-[#38BDF8] font-semibold">@francombina7</span>
                         </div>
                     </div>
                 </div>
@@ -712,94 +539,26 @@
 
     </main>
 
-    <!-- MODAL REDES Y EDICIÓN MANUAL -->
-    <div id="modal-redes" class="fixed inset-0 bg-black/75 backdrop-blur-xs hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-cubo-surface border border-cubo-border rounded-xl shadow-2xl max-w-lg w-full p-5 space-y-4">
-            <div class="flex justify-between items-center border-b border-cubo-border pb-3">
-                <h3 class="font-bold text-sm text-cubo-text">Resumen Listo para Redes & Clientes</h3>
-                <button onclick="cerrarModalRedes()" class="text-cubo-muted hover:text-cubo-text text-xs font-semibold">✕</button>
-            </div>
-            <textarea id="output-texto-redes" rows="11" class="w-full bg-cubo-bg border border-cubo-border rounded-lg p-3 text-xs font-mono text-cubo-text focus:outline-none focus:border-cubo-sky"></textarea>
-            <div class="flex justify-end gap-2 border-t border-cubo-border pt-3">
-                <button onclick="cerrarModalRedes()" class="px-3.5 py-1.5 text-xs font-medium text-cubo-muted hover:bg-cubo-elevated rounded-lg">Cerrar</button>
-                <button onclick="copiarTextoRedes()" class="px-4 py-1.5 text-xs font-semibold bg-cubo-sky text-zinc-950 hover:bg-sky-300 rounded-lg">Copiar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT INTEGRAL CON NAVEGACIÓN DE VISTAS -->
+    <!-- JAVASCRIPT INTEGRAL CON NAVEGACIÓN Y ANÁLISIS FUNDAMENTAL -->
     <script>
-        const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfJzgtIuaz2put1UG91FrHNn_NaN3wyt3FUK0viveHJyjZ_RCOUMtfnVwC9A3G-7sGai95izoGw7OM/pub?output=csv";
-        const DEFAULT_SUBAS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=454584979";
-        const DEFAULT_BAJAS_URL = "https://docs.google.com/spreadsheets/d/1sKBDfvagjOyfXWCEnYDSuup3KR8jgpnXIN6iYJybs68/export?format=csv&gid=205860665";
+        let instanciaChartHistorico = null;
+        let tickerSeleccionadoActual = "AAPL";
 
-        let plantillaStoryActual = 'cierre';
-        let formatoRedesActual = 'x';
-
-        let marketData = {
-            mervalArs: { val: "$2.848.945", sem: "+0,7%", ytd: "-6,6%" },
-            mervalUsd: { val: "$1.693", sem: "-3,4%", ytd: "-15,5%" },
-            sp500:     { val: "$7.719", sem: "+1,3%", ytd: "+12,8%" },
-            btc:       { val: "$78.250", sem: "-2,8%", ytd: "-8,6%" },
-            mep:       { val: "$1.565", sem: "+0,2%", ytd: "+6,2%" },
-            ccl:       { val: "$1.654", sem: "-0,3%", ytd: "+7,5%" },
-            riesgo:    { val: "741", sem: "-2,9%", ytd: "+31,0%" }
+        const FUNDAMENTALS_DB = {
+            "AAPL": { ticker: "AAPL", empresa: "Apple Inc.", exchange: "NASDAQ", sector: "Technology", price: 231.50, varSem: 1.2, varYtd: 22.4, mcap: "$3,52T", pe: 32.4, eps: 7.15, roe: 145, opMargin: 31.5, hist1Y: [180, 195, 210, 205, 215, 225, 230, 220, 235, 231.5] },
+            "MSFT": { ticker: "MSFT", empresa: "Microsoft Corp.", exchange: "NASDAQ", sector: "Technology", price: 420.10, varSem: -0.8, varYtd: 15.1, mcap: "$3,12T", pe: 35.1, eps: 11.2, roe: 38.0, opMargin: 44.2, hist1Y: [360, 380, 400, 410, 425, 430, 415, 420, 425, 420.1] },
+            "GOOGL": { ticker: "GOOGL", empresa: "Alphabet Inc.", exchange: "NASDAQ", sector: "Communication Services", price: 178.30, varSem: 2.4, varYtd: 24.5, mcap: "$2,21T", pe: 24.2, eps: 7.35, roe: 30.5, opMargin: 32.1, hist1Y: [130, 140, 150, 160, 175, 170, 165, 180, 175, 178.3] },
+            "NVDA": { ticker: "NVDA", empresa: "NVIDIA Corp.", exchange: "NASDAQ", sector: "Technology", price: 128.50, varSem: 4.5, varYtd: 155.2, mcap: "$3,15T", pe: 72.1, eps: 2.68, roe: 110.0, opMargin: 62.5, hist1Y: [45, 60, 80, 95, 110, 120, 115, 125, 130, 128.5] },
+            "MELI": { ticker: "MELI", empresa: "MercadoLibre Inc.", exchange: "NASDAQ", sector: "Consumer Cyclical", price: 1980.00, varSem: 3.1, varYtd: 38.4, mcap: "$100B", pe: 58.4, eps: 34.2, roe: 35.2, opMargin: 11.4, hist1Y: [1400, 1500, 1650, 1720, 1800, 1900, 1850, 1950, 1920, 1980] }
         };
-
-        let fallbackGanadores = [
-            { ticker: "SPOT", empresa: "Spotify Technology S.A.", var: "+10,03%" },
-            { ticker: "UNH", empresa: "UnitedHealth Group Inc.", var: "+5,87%" },
-            { ticker: "HD", empresa: "Home Depot, Inc.", var: "+5,85%" },
-            { ticker: "TSLA", empresa: "Tesla, Inc.", var: "+5,60%" },
-            { ticker: "JNJ", empresa: "Johnson & Johnson", var: "+4,72%" }
-        ];
-
-        let fallbackPerdedores = [
-            { ticker: "META", empresa: "Meta Platforms, Inc.", var: "-8,53%" },
-            { ticker: "NFLX", empresa: "Netflix, Inc.", var: "-4,93%" },
-            { ticker: "GOOGL", empresa: "Alphabet Inc.", var: "-4,81%" },
-            { ticker: "AMD", empresa: "Advanced Micro Devices", var: "-3,94%" },
-            { ticker: "AVGO", empresa: "Broadcom Inc.", var: "-1,68%" }
-        ];
-
-        let listaCompletaGanadores = [...fallbackGanadores];
-        let listaCompletaPerdedores = [...fallbackPerdedores];
-        let cedearsData = [
-            { ticker: "SPY",   nombre: "S&P 500 ETF Trust",       ratio: 20,  usd: 582.40, ars: 48150 },
-            { ticker: "AAPL",  nombre: "Apple Inc.",              ratio: 20,  usd: 231.50, ars: 19180 },
-            { ticker: "MELI",  nombre: "MercadoLibre Inc.",       ratio: 120, usd: 2040.00, ars: 27950 },
-            { ticker: "NVDA",  nombre: "NVIDIA Corp.",            ratio: 24,  usd: 138.60, ars: 9610 },
-            { ticker: "TSLA",  nombre: "Tesla, Inc.",             ratio: 15,  usd: 258.00, ars: 28480 },
-            { ticker: "VIST",  nombre: "Vista Energy S.A.B.",     ratio: 3,   usd: 51.20,  ars: 28100 }
-        ];
-        let eventosSemana = [
-            { titulo: "Balances Big Tech", detalle: "Reportes trimestrales MSFT, GOOGL, META y AMZN", impacto: "Alta Volatilidad", color: "amber" },
-            { titulo: "Licitación Finanzas", detalle: "Rollover del 107% adjudicando $11,56 billones", impacto: "Macro Local", color: "sky" },
-            { titulo: "Intervención MULC", detalle: "Seguimiento de compras netas y reservas BCRA", impacto: "Seguimiento", color: "green" },
-            { titulo: "PBI & PCE EE.UU.", detalle: "Crecimiento del 3,4% Q3 e inflación PCE en línea", impacto: "Alta Volatilidad", color: "amber" }
-        ];
 
         document.addEventListener("DOMContentLoaded", () => {
             try { if (window.lucide) lucide.createIcons(); } catch (e) {}
-            if (localStorage.getItem('cubo_theme') === 'light') {
-                document.body.classList.add('theme-light');
-                actualizarBotonTema();
-            }
-            cargarSheetURLsGuardadas();
-            renderizarEventosVolatilidad();
-            actualizarInterfaz();
-            renderizarTablasYStory();
-            recalcularCedearsConCCLOficial();
-            actualizarVisibilidadActivos();
-            sincronizarConSheet();
-            cargarNoticiasEnVivoDirecto(false);
+            inicializarSeccionFundamentales();
         });
 
-        // =========================================================================
-        // SISTEMA DE NAVEGACIÓN POR VISTAS (SUBPÁGINAS SPA)
-        // =========================================================================
         function cambiarSeccion(nombreVista) {
-            const vistas = ['inicio', 'ganadores', 'cedears', 'historias'];
+            const vistas = ['inicio', 'ganadores', 'fundamentales', 'historias'];
             vistas.forEach(v => {
                 const el = document.getElementById(`vista-${v}`);
                 const btn = document.getElementById(`nav-btn-${v}`);
@@ -812,223 +571,119 @@
                 }
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (nombreVista === 'fundamentales') {
+                seleccionarTickerFundamental(tickerSeleccionadoActual, false);
+            }
         }
 
-        function sincronizarTodo() {
-            sincronizarConSheet();
-            cargarNoticiasEnVivoDirecto(true);
+        function inicializarSeccionFundamentales() {
+            renderizarPillsTickers();
+            filtrarScreener();
+            seleccionarTickerFundamental("AAPL", false);
         }
 
-        // =========================================================================
-        // MOTOR DE NOTICIAS EN VIVO Y FUNCIONES DEL MONITOR
-        // =========================================================================
-        const CATEGORIAS_NOTICIAS_VIVO = [
-            { etiqueta: "Dólar & BCRA", rss: "https://news.google.com/rss/search?q=" + encodeURIComponent('(dolar OR reservas OR BCRA OR MEP OR CCL) (site:ambito.com OR site:cronista.com OR site:bloomberglinea.com) when:2d') + "&hl=es-419&gl=AR&ceid=AR:es-419" },
-            { etiqueta: "Mercados Locales", rss: "https://news.google.com/rss/search?q=" + encodeURIComponent('(merval OR "riesgo pais" OR bonos OR acciones) (site:ambito.com OR site:cronista.com OR site:bloomberglinea.com) when:2d') + "&hl=es-419&gl=AR&ceid=AR:es-419" },
-            { etiqueta: "Macro & Finanzas", rss: "https://news.google.com/rss/search?q=" + encodeURIComponent('(licitacion OR FMI OR inflacion OR tesoro OR tasas) (site:cronista.com OR site:ambito.com OR site:infobae.com) when:2d') + "&hl=es-419&gl=AR&ceid=AR:es-419" },
-            { etiqueta: "Wall Street", rss: "https://news.google.com/rss/search?q=" + encodeURIComponent('("wall street" OR "S&P 500" OR Fed OR Nasdaq) (site:bloomberglinea.com OR site:ambito.com OR site:cronista.com) when:2d') + "&hl=es-419&gl=AR&ceid=AR:es-419" },
-            { etiqueta: "Energía & Cripto", rss: "https://news.google.com/rss/search?q=" + encodeURIComponent('(petroleo OR "vaca muerta" OR YPF OR bitcoin OR oro) (site:bloomberglinea.com OR site:ambito.com OR site:cronista.com) when:2d') + "&hl=es-419&gl=AR&ceid=AR:es-419" }
-        ];
-
-        const NOTICIAS_RESPALDO_HOY = [
-            { titulo: "El Riesgo País cayó 2,9% hasta los 741 puntos y anotó su mayor baja en tres semanas", descripcion: "Mercados Locales • Fuente: Ámbito", link: "https://www.ambito.com" },
-            { titulo: "El FMI pidió acelerar reservas y precisó los pasos para el desembolso de USD 900M", descripcion: "Macro & Finanzas • Fuente: El Cronista", link: "https://www.cronista.com" },
-            { titulo: "Dólar CCL cede a $1.654 y la brecha con el MEP se comprime debajo del 6%", descripcion: "Dólar & BCRA • Fuente: Bloomberg Línea", link: "https://www.bloomberglinea.com" },
-            { titulo: "El PBI de EE.UU. creció 3,4% en el tercer trimestre y superó las expectativas", descripcion: "Wall Street • Fuente: El Cronista", link: "https://www.cronista.com" },
-            { titulo: "Bitcoin busca piso cerca de los USD 78.000 mientras el petróleo modera subas", descripcion: "Energía & Cripto • Fuente: Infobae", link: "https://www.infobae.com" }
-        ];
-
-        function limpiarTituloNoticia(rawTitle, defaultSource) {
-            let fuente = defaultSource || "Mercado";
-            let limpio = (rawTitle || "").trim();
-            const partes = limpio.split(" - ");
-            if (partes.length > 1) { fuente = partes.pop().trim(); limpio = partes.join(" - ").trim(); }
-            return { titulo: limpio, fuente };
+        function renderizarPillsTickers() {
+            const container = document.getElementById('barra-tickers-pills');
+            if (!container) return;
+            let html = "";
+            Object.keys(FUNDAMENTALS_DB).forEach(tk => {
+                const activo = (tk === tickerSeleccionadoActual);
+                const cls = activo ? "bg-cubo-sky text-zinc-950 font-bold" : "bg-cubo-bg text-cubo-muted hover:text-white border border-cubo-border";
+                html += `<button onclick="seleccionarTickerFundamental('${tk}', false)" class="px-2.5 py-1 rounded-lg text-xs font-mono shrink-0 transition ${cls}">${tk}</button>`;
+            });
+            container.innerHTML = html;
         }
 
-        async function obtenerItemsDeCategoriaRSS(cat) {
-            try {
-                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(cat.rss)}`;
-                const res = await fetch(apiUrl);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.status === 'ok' && Array.isArray(data.items)) {
-                        return data.items.map(it => ({ rawTitle: it.title || "", link: it.link || "#" }));
+        function seleccionarTickerFundamental(ticker) {
+            const item = FUNDAMENTALS_DB[ticker] || FUNDAMENTALS_DB["AAPL"];
+            tickerSeleccionadoActual = item.ticker;
+            renderizarPillsTickers();
+
+            document.getElementById('fund-ticker').innerText = item.ticker;
+            document.getElementById('fund-exchange').innerText = item.exchange;
+            document.getElementById('fund-sector').innerText = item.sector;
+            document.getElementById('fund-name').innerText = item.empresa;
+            document.getElementById('fund-price').innerText = '$' + item.price.toFixed(2);
+            document.getElementById('fund-var-sem').innerText = `Sem: +${item.varSem}%`;
+            document.getElementById('fund-mcap').innerText = item.mcap;
+            document.getElementById('fund-pe').innerText = item.pe + 'x';
+            document.getElementById('fund-eps').innerText = '$' + item.eps;
+            document.getElementById('fund-roe').innerText = item.roe + '%';
+            document.getElementById('fund-op-margin').innerText = item.opMargin + '%';
+            document.getElementById('bar-op-margin').style.width = item.opMargin + '%';
+
+            renderizarGraficoHistorico(item);
+        }
+
+        function renderizarGraficoHistorico(item) {
+            const canvas = document.getElementById('canvas-precio-historico');
+            if (!canvas || typeof Chart === 'undefined') return;
+            if (instanciaChartHistorico) instanciaChartHistorico.destroy();
+
+            instanciaChartHistorico = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct"],
+                    datasets: [{
+                        label: `${item.ticker} (USD)`,
+                        data: item.hist1Y,
+                        borderColor: '#4ADE80',
+                        backgroundColor: 'rgba(74, 222, 128, 0.14)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(46, 46, 52, 0.35)' }, ticks: { color: '#A1A1AA', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(46, 46, 52, 0.35)' }, ticks: { color: '#A1A1AA', font: { size: 10 } } }
                     }
                 }
-            } catch (e) {}
-            return [];
+            });
         }
 
-        async function cargarNoticiasEnVivoDirecto(forzar = false) {
-            const cacheKey = "cubo_noticias_vivo_cache_v1";
-            const ahora = Date.now();
-            if (!forzar) {
-                try {
-                    const guardado = JSON.parse(localStorage.getItem(cacheKey) || "null");
-                    if (guardado && (ahora - guardado.timestamp < 20 * 60 * 1000) && guardado.noticias) {
-                        renderizarTarjetasNoticias(guardado.noticias, guardado.horaStr);
-                        return;
-                    }
-                } catch (e) {}
-            }
-            try {
-                const promesas = CATEGORIAS_NOTICIAS_VIVO.map(cat => obtenerItemsDeCategoriaRSS(cat));
-                const resultadosPorCat = await Promise.all(promesas);
-                const seleccionadas = [];
-                resultadosPorCat.forEach((items, idx) => {
-                    let elegida = items[0] ? limpiarTituloNoticia(items[0].rawTitle, "Finanzas") : null;
-                    if (elegida) {
-                        seleccionadas.push({ titulo: elegida.titulo, descripcion: `${CATEGORIAS_NOTICIAS_VIVO[idx].etiqueta} • Fuente: ${elegida.fuente}`, link: items[0].link });
-                    } else {
-                        seleccionadas.push(NOTICIAS_RESPALDO_HOY[idx]);
-                    }
+        function cambiarModoGrafico(modo) {
+            document.getElementById('contenedor-grafico-nativo').classList.toggle('hidden', modo === 'tradingview');
+            document.getElementById('contenedor-grafico-tv').classList.toggle('hidden', modo !== 'tradingview');
+            if (modo === 'tradingview') {
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": `NASDAQ:${tickerSeleccionadoActual}`,
+                    "interval": "D",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "es",
+                    "container_id": "tradingview-widget-container"
                 });
-                const horaStr = new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs';
-                localStorage.setItem(cacheKey, JSON.stringify({ timestamp: ahora, horaStr, noticias: seleccionadas }));
-                renderizarTarjetasNoticias(seleccionadas, horaStr);
-            } catch (err) {
-                renderizarTarjetasNoticias(NOTICIAS_RESPALDO_HOY, "Hoy");
             }
         }
 
-        function renderizarTarjetasNoticias(lista, fechaStr) {
+        function filtrarScreener() {
+            const tbody = document.getElementById('tabla-screener-body');
+            if (!tbody) return;
             let html = "";
-            lista.forEach((item, index) => {
+            Object.keys(FUNDAMENTALS_DB).forEach(tk => {
+                const item = FUNDAMENTALS_DB[tk];
                 html += `
-                    <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer" class="bg-cubo-bg p-3.5 rounded-xl border border-cubo-border flex flex-col justify-between hover:border-cubo-sky/50 transition group block">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-[10px] font-mono font-bold text-cubo-sky bg-cubo-sky/10 px-2 py-0.5 rounded border border-cubo-sky/20">0${index + 1}</span>
-                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-cubo-muted group-hover:text-cubo-sky transition"></i>
-                            </div>
-                            <h4 class="font-semibold text-xs text-cubo-text group-hover:text-cubo-sky transition leading-snug mb-2">${item.titulo}</h4>
-                        </div>
-                        <p class="text-[10.5px] text-cubo-muted leading-relaxed pt-2 border-t border-cubo-border/50">${item.descripcion}</p>
-                    </a>
-                `;
-            });
-            document.getElementById('seccion-noticias-dia').innerHTML = html;
-            if (fechaStr) document.getElementById('fecha-noticias').innerText = `En vivo: ${fechaStr}`;
-            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
-        }
-
-        function toggleTemaWeb() {
-            document.body.classList.toggle('theme-light');
-            const esClaro = document.body.classList.contains('theme-light');
-            localStorage.setItem('cubo_theme', esClaro ? 'light' : 'dark');
-            actualizarBotonTema();
-        }
-
-        function actualizarBotonTema() {
-            const esClaro = document.body.classList.contains('theme-light');
-            document.getElementById('btn-tema-web').innerHTML = esClaro ? `<i data-lucide="moon" class="w-3.5 h-3.5 text-cubo-sky"></i>` : `<i data-lucide="sun" class="w-3.5 h-3.5 text-cubo-sky"></i>`;
-            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
-        }
-
-        function renderizarEventosVolatilidad() {
-            let html = "";
-            eventosSemana.forEach(ev => {
-                html += `
-                    <div class="bg-cubo-bg p-3 rounded-lg border border-cubo-border flex flex-col justify-between">
-                        <div class="flex justify-between items-start gap-2 mb-1.5">
-                            <span class="font-semibold text-cubo-text">${ev.titulo}</span>
-                            <span class="text-[10px] font-medium px-1.5 py-0.5 rounded border shrink-0 bg-amber-500/10 text-amber-400 border-amber-500/25">${ev.impacto}</span>
-                        </div>
-                        <p class="text-[11px] text-cubo-muted leading-snug">${ev.detalle}</p>
-                    </div>
-                `;
-            });
-            document.getElementById('contenedor-eventos').innerHTML = html;
-        }
-
-        function generarSparklineSVG(semStr, invertirColor = false) {
-            const esPositivo = semStr && semStr.includes('+');
-            const color = esPositivo ? (invertirColor ? "#F87171" : "#4ADE80") : (invertirColor ? "#4ADE80" : "#F87171");
-            return `<svg viewBox="0 0 80 28" class="w-full h-full overflow-visible" fill="none"><path d="M 2 14 L 20 12 L 40 16 L 60 13 L 78 14" stroke="${color}" stroke-width="2" stroke-linecap="round"/><circle cx="78" cy="14" r="2.5" fill="${color}"/></svg>`;
-        }
-
-        function recalcularCedearsConCCLOficial() {
-            renderizarTablaCedears();
-        }
-
-        function actualizarPrecioCedear(index, campo, valor) {
-            cedearsData[index][campo] = parseFloat(valor) || 0;
-            renderizarTablaCedears();
-        }
-
-        function renderizarTablaCedears() {
-            let html = "";
-            cedearsData.forEach((item, idx) => {
-                const cclImplicito = (item.ars * item.ratio) / item.usd;
-                html += `
-                    <tr class="hover:bg-cubo-elevated/40 transition">
-                        <td class="py-2 px-2 font-bold text-cubo-text">${item.ticker}</td>
-                        <td class="py-2 px-2 text-cubo-muted">${item.nombre}</td>
-                        <td class="py-2 px-2 text-center">${item.ratio}:1</td>
-                        <td class="py-2 px-2 text-right"><input type="number" value="${item.usd}" onchange="actualizarPrecioCedear(${idx}, 'usd', this.value)" class="w-20 bg-cubo-bg border border-cubo-border rounded px-1 text-right text-xs"></td>
-                        <td class="py-2 px-2 text-right"><input type="number" value="${item.ars}" onchange="actualizarPrecioCedear(${idx}, 'ars', this.value)" class="w-20 bg-cubo-bg border border-cubo-border rounded px-1 text-right text-xs"></td>
-                        <td class="py-2 px-2 text-right font-bold text-cubo-sky">$${Math.round(cclImplicito)}</td>
-                        <td class="py-2 px-2 text-right"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">Normal</span></td>
+                    <tr onclick="seleccionarTickerFundamental('${item.ticker}')" class="hover:bg-cubo-elevated/50 transition cursor-pointer">
+                        <td class="py-2.5 px-3 font-mono font-bold text-cubo-sky">${item.ticker}</td>
+                        <td class="py-2.5 px-3 text-white">${item.empresa}</td>
+                        <td class="py-2.5 px-3 text-right font-semibold text-white">$${item.price.toFixed(2)}</td>
+                        <td class="py-2.5 px-3 text-right text-emerald-400">+${item.varSem}%</td>
+                        <td class="py-2.5 px-3 text-right text-emerald-400">+${item.varYtd}%</td>
+                        <td class="py-2.5 px-3 text-right text-white">${item.mcap}</td>
+                        <td class="py-2.5 px-3 text-right">${item.pe}x</td>
                     </tr>
                 `;
             });
-            document.getElementById('tabla-cedears').innerHTML = html;
+            tbody.innerHTML = html;
         }
 
-        function toggleConfigPanel() { document.getElementById('panel-configuracion').classList.toggle('hidden'); }
-        function cargarSheetURLsGuardadas() {
-            document.getElementById('cfg-sheet-url').value = localStorage.getItem('cubo_sheet_csv_url') || DEFAULT_SHEET_URL;
-            document.getElementById('cfg-subas-url').value = localStorage.getItem('cubo_subas_csv_url') || DEFAULT_SUBAS_URL;
-            document.getElementById('cfg-bajas-url').value = localStorage.getItem('cubo_bajas_csv_url') || DEFAULT_BAJAS_URL;
-        }
-        function guardarSheetURLs() {
-            localStorage.setItem('cubo_sheet_csv_url', document.getElementById('cfg-sheet-url').value);
-            toggleConfigPanel();
-            sincronizarConSheet();
-        }
-
-        async function sincronizarConSheet() {
-            renderizarTabla('tabla-ganadores', fallbackGanadores, true);
-            renderizarTabla('tabla-perdedores', fallbackPerdedores, false);
-        }
-
-        function filtrarTablasAcciones() {
-            renderizarTabla('tabla-ganadores', fallbackGanadores, true);
-            renderizarTabla('tabla-perdedores', fallbackPerdedores, false);
-        }
-
-        function limpiarFiltroAcciones() {
-            document.getElementById('input-filtro-acciones').value = "";
-            filtrarTablasAcciones();
-        }
-
-        function renderizarTabla(elementId, datos, esPositivo) {
-            let html = "";
-            const color = esPositivo ? "text-emerald-400" : "text-rose-400";
-            datos.forEach(i => {
-                html += `<tr class="hover:bg-cubo-elevated/40"><td class="py-2 font-semibold">${i.ticker}</td><td class="py-2 text-cubo-muted">${i.empresa}</td><td class="py-2 text-right font-semibold ${color}">${i.var}</td></tr>`;
-            });
-            document.getElementById(elementId).innerHTML = html;
-        }
-
-        function renderizarStoryTop(g, p) {}
-        function actualizarInterfaz() {}
-        function seleccionarPlantillaStory(tpl) { plantillaStoryActual = tpl; }
-        function actualizarMarcasDeAgua() {}
-        function descargarStoryPNG() {
-            html2canvas(document.getElementById('story-infographic'), { scale: 3, backgroundColor: '#141417' }).then(canvas => {
-                const l = document.createElement('a'); l.download = 'historia-cubo.png'; l.href = canvas.toDataURL(); l.click();
-            });
-        }
-        function actualizarVisibilidadActivos() {}
-        function actualizarTextoIdea() {}
-        function abrirModalRedes() { document.getElementById('modal-redes').classList.remove('hidden'); }
-        function cerrarModalRedes() { document.getElementById('modal-redes').classList.add('hidden'); }
-        function copiarTextoRedes() { navigator.clipboard.writeText(document.getElementById('output-texto-redes').value); }
-        function abrirModalEdicion() {}
-        function cerrarModalEdicion() {}
-        function guardarEdicionManual() {}
+        function sincronizarTodo() { location.reload(); }
     </script>
 </body>
 </html>
