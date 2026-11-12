@@ -1,689 +1,143 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo Finanzas — Monitor de Mercado & Análisis Fundamental</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Monitor de Renta Fija Argentina | Closing Bell</title>
+    <!-- Tailwind CSS para un diseño limpio y moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: DM Sans & Roboto Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- html2canvas para exportar la infografía a PNG -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Chart.js 4.4.1 para gráficos históricos y comparativos nativos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- TradingView Widget Library -->
-    <script src="https://s3.tradingview.com/tv.js"></script>
-
-    <style>
-        :root {
-            --bg-main: #111113;
-            --bg-surface: #18181B;
-            --bg-elevated: #222226;
-            --border-color: #2E2E34;
-            --text-main: #F4F4F6;
-            --text-muted: #A1A1AA;
-            --sky-accent: #38BDF8;
-            --green-accent: #4ADE80;
-            --red-accent: #F87171;
-            --amber-accent: #FBBF24;
-        }
-
-        body.theme-light {
-            --bg-main: #F4F5F7;
-            --bg-surface: #FFFFFF;
-            --bg-elevated: #F1F5F9;
-            --border-color: #E2E8F0;
-            --text-main: #18181B;
-            --text-muted: #64748B;
-            --sky-accent: #0284C7;
-            --green-accent: #16A34A;
-            --red-accent: #DC2626;
-            --amber-accent: #D97706;
-        }
-
-        body {
-            font-family: 'Google Sans', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            letter-spacing: -0.01em;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .num-tabular {
-            font-variant-numeric: tabular-nums;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-main);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-    </style>
-
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['"Google Sans"', '"DM Sans"', 'Roboto', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-                        mono: ['"Google Sans Mono"', '"Roboto Mono"', 'monospace'],
-                    },
                     colors: {
-                        cubo: {
-                            bg: 'var(--bg-main)',
-                            surface: 'var(--bg-surface)',
-                            elevated: 'var(--bg-elevated)',
-                            border: 'var(--border-color)',
-                            text: 'var(--text-main)',
-                            muted: 'var(--text-muted)',
-                            sky: '#38BDF8',
-                            green: '#4ADE80',
-                            red: '#F87171',
-                            amber: '#FBBF24'
-                        }
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                        bordercolor: '#334155'
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="antialiased min-h-screen pb-16 selection:bg-cubo-sky/30 selection:text-cubo-text">
+<body class="bg-darkbg text-slate-100 font-sans min-h-screen p-4 md:p-8">
 
-    <!-- HEADER PRINCIPAL CON NAVEGACIÓN DE VISTAS (SUBPÁGINAS) -->
-    <header class="bg-cubo-surface/95 backdrop-blur-md border-b border-cubo-border sticky top-0 z-40 shadow-md">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
-            
-            <div class="flex items-center gap-3.5">
-                <div class="w-9 h-9 bg-cubo-elevated border border-cubo-sky/40 text-cubo-sky rounded-lg flex items-center justify-center shadow-inner shrink-0">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-base font-bold tracking-tight text-cubo-text">CUBO FINANZAS</h1>
-                    <p class="text-xs text-cubo-muted">Monitor de Mercado & Análisis Fundamental</p>
-                </div>
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-bordercolor pb-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Closing Bell Terminal
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Monitor de Renta Fija Argentina (Soberanos & Obligaciones Negociables)</p>
             </div>
-
-            <!-- Accesos a Secciones (Subpáginas SPA) -->
-            <nav class="flex items-center gap-1 bg-cubo-bg p-1 rounded-xl border border-cubo-border text-xs font-medium overflow-x-auto max-w-full">
-                <button onclick="cambiarSeccion('inicio')" id="nav-btn-inicio" class="px-3 py-1.5 rounded-lg bg-cubo-sky text-zinc-950 font-semibold transition whitespace-nowrap flex items-center gap-1.5 shadow-sm">
-                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Panel General
-                </button>
-                <button onclick="cambiarSeccion('ganadores')" id="nav-btn-ganadores" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
-                    <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i> Top Subas / Bajas
-                </button>
-                <button onclick="cambiarSeccion('fundamentales')" id="nav-btn-fundamentales" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
-                    <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-cubo-sky"></i> Análisis Fundamental
-                </button>
-                <button onclick="cambiarSeccion('historias')" id="nav-btn-historias" class="px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5">
-                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-amber-400"></i> Imagen Historias
-                </button>
-            </nav>
-            
-            <div class="flex items-center gap-2 flex-wrap justify-center">
-                <span id="badge-estado" class="text-xs bg-emerald-500/10 text-emerald-400 font-medium px-2.5 py-1 rounded-lg border border-emerald-500/25 hidden sm:flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Activo
+            <div class="mt-3 md:mt-0 text-right">
+                <span id="last-update" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-md border border-bordercolor">
+                    Actualizado: Hoy, 10:40 AM
                 </span>
-                <button onclick="sincronizarTodo()" class="bg-cubo-elevated hover:opacity-85 text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Sincronizar">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cubo-sky"></i>
-                </button>
-                <button onclick="toggleTemaWeb()" id="btn-tema-web" class="bg-cubo-elevated hover:opacity-85 text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Cambiar Tema">
-                    <i data-lucide="sun" class="w-3.5 h-3.5 text-cubo-sky"></i>
-                </button>
-                <button onclick="toggleConfigPanel()" class="bg-cubo-elevated hover:opacity-85 text-cubo-muted hover:text-cubo-text p-1.5 rounded-lg text-xs transition border border-cubo-border" title="Configurar Fuentes">
-                    <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-                </button>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 mt-6 space-y-6">
-
-        <!-- PANEL DE CONFIGURACIÓN -->
-        <section id="panel-configuracion" class="bg-cubo-surface border border-cubo-border p-5 rounded-xl hidden space-y-4 shadow-lg">
-            <div class="flex justify-between items-center border-b border-cubo-border pb-3">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="database" class="w-4 h-4 text-cubo-sky"></i>
-                    <div>
-                        <h3 class="font-semibold text-sm text-cubo-text">Conexión de Orígenes de Datos (Google Sheets CSV)</h3>
-                        <p class="text-xs text-cubo-muted">Enlaces de solapas configurados para lectura directa.</p>
-                    </div>
-                </div>
-                <button onclick="toggleConfigPanel()" class="text-cubo-muted hover:text-cubo-text text-xs font-medium px-2 py-1 rounded hover:bg-cubo-elevated">Cerrar ✕</button>
+        <!-- Tarjetas de Resumen Rápido -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 uppercase tracking-wider">Riesgo País (EMBI)</span>
+                <div class="text-2xl font-semibold text-white mt-1">1,085 <span class="text-xs text-emerald-400 font-normal">(-12 bps)</span></div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div>
-                    <label class="block font-medium text-cubo-muted mb-1">Hoja "Datos" (Principal)</label>
-                    <input type="text" id="cfg-sheet-url" class="w-full border border-cubo-border p-2 rounded-lg bg-cubo-bg text-cubo-sky font-mono text-[11px] focus:outline-none focus:border-cubo-sky">
-                </div>
-                <div>
-                    <label class="block font-medium text-cubo-muted mb-1">Hoja "Subas_EEUU" (Ganadores)</label>
-                    <input type="text" id="cfg-subas-url" class="w-full border border-cubo-border p-2 rounded-lg bg-cubo-bg text-cubo-sky font-mono text-[11px] focus:outline-none focus:border-cubo-sky">
-                </div>
-                <div>
-                    <label class="block font-medium text-cubo-muted mb-1">Hoja "Bajas_EEUU" (Perdedores)</label>
-                    <input type="text" id="cfg-bajas-url" class="w-full border border-cubo-border p-2 rounded-lg bg-cubo-bg text-cubo-sky font-mono text-[11px] focus:outline-none focus:border-cubo-sky">
-                </div>
+            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 uppercase tracking-wider">Paridad Promedio Bonaerense</span>
+                <div class="text-2xl font-semibold text-white mt-1">63.4% <span class="text-xs text-emerald-400 font-normal">(+0.6%)</span></div>
             </div>
-            <div class="flex justify-between items-center border-t border-cubo-border pt-3">
-                <span class="text-xs text-cubo-muted">Se guardan localmente en tu navegador.</span>
-                <button onclick="guardarSheetURLs()" class="bg-cubo-sky text-zinc-950 hover:bg-sky-300 px-4 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
-                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Guardar y Sincronizar
-                </button>
-            </div>
-        </section>
-
-
-        <!-- ================================================================= -->
-        <!-- VISTA 1: PANEL GENERAL (INICIO) -->
-        <!-- ================================================================= -->
-        <div id="vista-inicio" class="space-y-6">
-            <!-- Radar de Eventos -->
-            <section class="bg-cubo-surface rounded-xl border border-cubo-border p-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-cubo-border">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-cubo-text">Radar de Eventos & Catalizadores de Volatilidad</h3>
-                    </div>
-                    <span class="text-[11px] text-cubo-muted font-mono">Agenda Macro & Balances S&P 500</span>
-                </div>
-                <div id="contenedor-eventos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs"></div>
-            </section>
-
-            <!-- Top 5 Noticias del Día -->
-            <section class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cubo-border pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
-                        <h3 class="text-sm font-semibold text-cubo-text">Top 5 Noticias del Día</h3>
-                        <span class="text-[10px] bg-cubo-sky/10 text-cubo-sky px-2 py-0.5 rounded border border-cubo-sky/20 font-medium">RSS en Vivo</span>
-                    </div>
-                    <span id="fecha-noticias" class="text-[10px] font-mono text-cubo-muted bg-cubo-elevated px-2.5 py-1 rounded-lg border border-cubo-border">Buscando titulares...</span>
-                </div>
-                <div id="seccion-noticias-dia" class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                    <div class="text-xs text-cubo-muted text-center py-6 col-span-5 flex items-center justify-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-cubo-sky animate-ping"></span> Conectando en vivo con portales económicos...
-                    </div>
-                </div>
-            </section>
-
-            <!-- Indicadores Principales -->
-            <section>
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
-                        <h2 class="text-sm font-semibold text-cubo-text">Indicadores Principales de Mercado</h2>
-                    </div>
-                    <span class="text-xs text-cubo-muted">Variación Semanal, YTD & Tendencia</span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                    <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border hover:border-cubo-sky/40 transition flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-medium text-cubo-muted">S&P Merval en USD</span>
-                            <span class="text-[10px] font-medium text-cubo-sky bg-cubo-sky/10 px-2 py-0.5 rounded">CCL</span>
-                        </div>
-                        <div class="flex items-end justify-between my-1.5">
-                            <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-merval-usd">$1.693</div>
-                            <div id="spark-merval-usd" class="w-20 h-7"></div>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-xs num-tabular mt-2 pt-2 border-t border-cubo-border/60">
-                            <span id="sem-merval-usd" class="px-2 py-0.5 rounded-md border">Sem: -3,4%</span>
-                            <span id="ytd-merval-usd" class="px-2 py-0.5 rounded-md border">YTD: -15,5%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border hover:border-cubo-sky/40 transition flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-medium text-cubo-muted">S&P 500</span>
-                            <span class="text-[10px] font-medium text-cubo-muted bg-cubo-elevated px-2 py-0.5 rounded">EE.UU.</span>
-                        </div>
-                        <div class="flex items-end justify-between my-1.5">
-                            <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-sp500">$7.719</div>
-                            <div id="spark-sp500" class="w-20 h-7"></div>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-xs num-tabular mt-2 pt-2 border-t border-cubo-border/60">
-                            <span id="sem-sp500" class="px-2 py-0.5 rounded-md border">Sem: +1,3%</span>
-                            <span id="ytd-sp500" class="px-2 py-0.5 rounded-md border">YTD: +12,8%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border hover:border-cubo-sky/40 transition flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-medium text-cubo-muted">Dólar MEP</span>
-                            <span class="text-[10px] font-medium text-cubo-muted bg-cubo-elevated px-2 py-0.5 rounded">Local</span>
-                        </div>
-                        <div class="flex items-end justify-between my-1.5">
-                            <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-mep">$1.578</div>
-                            <div id="spark-mep" class="w-20 h-7"></div>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-xs num-tabular mt-2 pt-2 border-t border-cubo-border/60">
-                            <span id="sem-mep" class="px-2 py-0.5 rounded-md border">Sem: +0,9%</span>
-                            <span id="ytd-mep" class="px-2 py-0.5 rounded-md border">YTD: +6,2%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-cubo-surface p-4 rounded-xl border border-cubo-border border-l-2 border-l-cubo-sky hover:border-cubo-sky/40 transition flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-medium text-cubo-muted">Riesgo País</span>
-                            <span class="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">EMBI+</span>
-                        </div>
-                        <div class="flex items-end justify-between my-1.5">
-                            <div class="text-2xl font-bold text-cubo-text num-tabular tracking-tight" id="val-riesgo">741</div>
-                            <div id="spark-riesgo" class="w-20 h-7"></div>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-xs num-tabular mt-2 pt-2 border-t border-cubo-border/60">
-                            <span id="sem-riesgo" class="px-2 py-0.5 rounded-md border">Sem: -2,9%</span>
-                            <span id="ytd-riesgo" class="px-2 py-0.5 rounded-md border">YTD: +31,0%</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-
-        <!-- ================================================================= -->
-        <!-- VISTA 2: TOP GANADORES Y PERDEDORES DE EE.UU. -->
-        <!-- ================================================================= -->
-        <div id="vista-ganadores" class="space-y-4 hidden">
-            <div class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-cubo-border pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
-                        <h2 class="text-sm font-semibold text-cubo-text">Rendimiento Semanal de Acciones (EE.UU.)</h2>
-                    </div>
-                    <div class="relative w-full sm:w-72">
-                        <i data-lucide="search" class="w-3.5 h-3.5 text-cubo-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="input-filtro-acciones" oninput="filtrarTablasAcciones()" placeholder="Buscar ticker o empresa..." class="w-full bg-cubo-surface border border-cubo-border rounded-lg pl-8 pr-7 py-1.5 text-xs text-cubo-text placeholder:text-cubo-muted focus:outline-none focus:border-cubo-sky transition">
-                        <button id="btn-limpiar-filtro" onclick="limpiarFiltroAcciones()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-cubo-muted hover:text-cubo-text text-xs">✕</button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-cubo-bg rounded-xl border border-cubo-border overflow-hidden">
-                        <div class="bg-cubo-surface px-4 py-3 border-b border-cubo-border flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                <h3 class="font-semibold text-xs text-cubo-text">Principales Ganadores (EE.UU.)</h3>
-                            </div>
-                            <span id="contador-ganadores" class="text-[11px] bg-emerald-500/10 text-emerald-400 font-medium px-2 py-0.5 rounded">Top 5 Subas</span>
-                        </div>
-                        <div class="p-3">
-                            <table class="w-full text-left text-xs num-tabular">
-                                <thead>
-                                    <tr class="text-cubo-muted border-b border-cubo-border text-[11px]">
-                                        <th class="pb-2 font-medium">Ticker</th>
-                                        <th class="pb-2 font-medium">Empresa</th>
-                                        <th class="pb-2 font-medium text-right">Var. Semanal</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-ganadores" class="divide-y divide-cubo-border/50 text-cubo-text"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="bg-cubo-bg rounded-xl border border-cubo-border overflow-hidden">
-                        <div class="bg-cubo-surface px-4 py-3 border-b border-cubo-border flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-                                <h3 class="font-semibold text-xs text-cubo-text">Principales Perdedores (EE.UU.)</h3>
-                            </div>
-                            <span id="contador-perdedores" class="text-[11px] bg-rose-500/10 text-rose-400 font-medium px-2 py-0.5 rounded">Top 5 Bajas</span>
-                        </div>
-                        <div class="p-3">
-                            <table class="w-full text-left text-xs num-tabular">
-                                <thead>
-                                    <tr class="text-cubo-muted border-b border-cubo-border text-[11px]">
-                                        <th class="pb-2 font-medium">Ticker</th>
-                                        <th class="pb-2 font-medium">Empresa</th>
-                                        <th class="pb-2 font-medium text-right">Var. Semanal</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-perdedores" class="divide-y divide-cubo-border/50 text-cubo-text"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 uppercase tracking-wider">TIR Soberana Promedio</span>
+                <div class="text-2xl font-semibold text-white mt-1">18.2% <span class="text-xs text-rose-400 font-normal">(-0.2%)</span></div>
             </div>
         </div>
 
-
-        <!-- ================================================================= -->
-        <!-- VISTA 3: ANÁLISIS FUNDAMENTAL & HISTÓRICO (NUEVO) -->
-        <!-- ================================================================= -->
-        <div id="vista-fundamentales" class="space-y-4 hidden">
-            <section class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-5">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-cubo-border pb-4">
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
-                            <h2 class="text-sm font-semibold text-white">Análisis Fundamental & Histórico de Precios (EE.UU.)</h2>
-                            <span id="badge-tickers-count" class="text-[10px] font-mono bg-cubo-sky/10 text-cubo-sky px-2 py-0.5 rounded border border-cubo-sky/25">Cartera Global</span>
-                        </div>
-                        <p class="text-xs text-cubo-muted mt-1">Múltiplos de valuación, rentabilidad, solvencia, márgenes operativos y evolución histórica de precios.</p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                        <div class="relative flex-1 sm:flex-initial sm:w-52">
-                            <input type="text" id="input-buscar-ticker" oninput="filtrarScreener()" placeholder="Buscar ticker o empresa..." class="w-full bg-cubo-bg border border-cubo-border rounded-lg pl-3 pr-7 py-1.5 text-xs text-white focus:border-cubo-sky focus:outline-none">
-                        </div>
-                        <select id="select-sector-filtro" onchange="filtrarScreener()" class="bg-cubo-bg border border-cubo-border rounded-lg px-2.5 py-1.5 text-xs text-cubo-text focus:border-cubo-sky focus:outline-none">
-                            <option value="ALL">Todos los Sectores</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Financial Services">Financial Services</option>
-                            <option value="Healthcare">Healthcare</option>
-                            <option value="Consumer Defensive">Consumer Defensive</option>
-                            <option value="Consumer Cyclical">Consumer Cyclical</option>
-                            <option value="Communication Services">Communication Services</option>
-                            <option value="Energy">Energy</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Píldoras de selección rápida de tickers -->
-                <div class="space-y-1.5">
-                    <div class="text-[11px] text-cubo-muted">Seleccioná un activo para inspeccionar su ficha fundamental y gráfico:</div>
-                    <div id="barra-tickers-pills" class="flex items-center gap-1.5 overflow-x-auto pb-2 pt-0.5"></div>
-                </div>
-
-                <!-- Panel Dividido Ficha Fundamental (Izquierda) + Gráfico Histórico (Derecha) -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-                    <!-- Ficha Fundamental -->
-                    <div class="lg:col-span-5 bg-cubo-bg rounded-xl border border-cubo-border p-4 flex flex-col justify-between space-y-4">
-                        <div class="border-b border-cubo-border pb-3.5">
-                            <div class="flex justify-between items-start gap-2">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span id="fund-ticker" class="text-lg font-bold text-white font-mono tracking-tight">AAPL</span>
-                                        <span id="fund-exchange" class="text-[10px] font-mono uppercase bg-cubo-elevated text-cubo-muted px-2 py-0.5 rounded border">NASDAQ</span>
-                                        <span id="fund-sector" class="text-[10px] font-medium bg-cubo-sky/10 text-cubo-sky px-2 py-0.5 rounded">Technology</span>
-                                    </div>
-                                    <h3 id="fund-name" class="text-xs font-medium text-cubo-muted mt-0.5">Apple Inc.</h3>
-                                </div>
-                                <div class="text-right num-tabular">
-                                    <div id="fund-price" class="text-xl font-bold text-white">$231,50</div>
-                                    <div class="flex items-center justify-end gap-1 mt-1">
-                                        <span id="fund-var-sem" class="text-[10px] px-1.5 py-0.5 rounded border">Sem: +1,2%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="text-[11px] font-semibold text-white uppercase tracking-wider mb-2">Múltiplos Clave</div>
-                            <div class="grid grid-cols-2 gap-2 num-tabular text-xs">
-                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
-                                    <div class="text-[10px] text-cubo-muted">Market Cap</div>
-                                    <div id="fund-mcap" class="text-sm font-bold text-white mt-0.5">$3,52T</div>
-                                </div>
-                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
-                                    <div class="text-[10px] text-cubo-muted">P/E Ratio</div>
-                                    <div id="fund-pe" class="text-sm font-bold text-white mt-0.5">32,4x</div>
-                                </div>
-                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
-                                    <div class="text-[10px] text-cubo-muted">EPS</div>
-                                    <div id="fund-eps" class="text-sm font-bold text-white mt-0.5">$7,15</div>
-                                </div>
-                                <div class="bg-cubo-surface p-2.5 rounded-lg border border-cubo-border">
-                                    <div class="text-[10px] text-cubo-muted">ROE</div>
-                                    <div id="fund-roe" class="text-sm font-bold text-cubo-green mt-0.5">145%</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-cubo-surface p-3 rounded-lg border border-cubo-border space-y-2 num-tabular text-xs">
-                            <div class="text-[11px] font-semibold text-white mb-1">Márgenes Operativos</div>
-                            <div>
-                                <div class="flex justify-between text-[10px] mb-0.5"><span class="text-cubo-muted">Margen Operativo</span><span id="fund-op-margin" class="font-bold text-cubo-sky">31,5%</span></div>
-                                <div class="w-full h-1.5 bg-cubo-bg rounded-full overflow-hidden"><div id="bar-op-margin" class="h-full bg-cubo-sky rounded-full" style="width: 31.5%;"></div></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gráfico Histórico -->
-                    <div class="lg:col-span-7 bg-cubo-bg rounded-xl border border-cubo-border p-4 flex flex-col justify-between space-y-3.5">
-                        <div class="flex justify-between items-center border-b border-cubo-border pb-3">
-                            <div class="flex items-center gap-1.5 bg-cubo-surface p-1 rounded-lg border border-cubo-border text-xs">
-                                <button id="btn-modo-nativo" onclick="cambiarModoGrafico('nativo')" class="px-2.5 py-1 rounded-md font-semibold bg-cubo-sky text-zinc-950 transition">Serie Histórica</button>
-                                <button id="btn-modo-tv" onclick="cambiarModoGrafico('tradingview')" class="px-2.5 py-1 rounded-md font-medium text-cubo-muted hover:text-white transition">TradingView</button>
-                            </div>
-                            <div class="text-xs text-cubo-muted">Evolución de Precio (USD)</div>
-                        </div>
-
-                        <div id="contenedor-grafico-nativo" class="relative h-80 w-full bg-cubo-surface/60 rounded-xl border border-cubo-border p-3">
-                            <canvas id="canvas-precio-historico"></canvas>
-                        </div>
-                        <div id="contenedor-grafico-tv" class="hidden h-96 w-full bg-cubo-surface rounded-xl border border-cubo-border overflow-hidden relative">
-                            <div id="tradingview-widget-container" class="w-full h-full"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabla Screener -->
-                <div class="bg-cubo-bg rounded-xl border border-cubo-border overflow-hidden">
-                    <div class="bg-cubo-surface px-4 py-3 border-b border-cubo-border font-semibold text-xs text-white">Screener de Acciones Globales</div>
-                    <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
-                        <table class="w-full text-left text-xs num-tabular border-collapse">
-                            <thead class="bg-cubo-surface sticky top-0 z-10 text-[10px] uppercase text-cubo-muted">
-                                <tr>
-                                    <th class="py-2 px-3 font-semibold">Ticker</th>
-                                    <th class="py-2 px-3 font-semibold">Empresa / Sector</th>
-                                    <th class="py-2 px-3 font-semibold text-right">Precio (USD)</th>
-                                    <th class="py-2 px-3 font-semibold text-right">Sem %</th>
-                                    <th class="py-2 px-3 font-semibold text-right">YTD %</th>
-                                    <th class="py-2 px-3 font-semibold text-right">Market Cap</th>
-                                    <th class="py-2 px-3 font-semibold text-right">P/E</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-screener-body" class="divide-y divide-cubo-border/50 text-cubo-text"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+        <!-- Tabla de Cotizaciones -->
+        <div class="bg-cardbg border border-bordercolor rounded-xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/50 border-b border-bordercolor text-xs uppercase tracking-wider text-slate-400">
+                            <th class="py-3 px-4 font-medium">Ticker</th>
+                            <th class="py-3 px-4 font-medium">Descripción</th>
+                            <th class="py-3 px-4 font-medium text-right">Último ($ / USD)</th>
+                            <th class="py-3 px-4 font-medium text-right">Var %</th>
+                            <th class="py-3 px-4 font-medium text-right">Paridad</th>
+                            <th class="py-3 px-4 font-medium text-right">TIR %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-bonos" class="divide-y divide-bordercolor text-sm">
+                        <!-- Inyección dinámica vía JS o estática de base -->
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">AL30</td>
+                            <td class="py-3 px-4 text-slate-300">Bono USD 2030 L. Arg</td>
+                            <td class="py-3 px-4 text-right font-mono">64.50</td>
+                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+1.24%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">63.8%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">21.4%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">GD30</td>
+                            <td class="py-3 px-4 text-slate-300">Bono USD 2030 L. Ext</td>
+                            <td class="py-3 px-4 text-right font-mono">67.20</td>
+                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.89%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">66.5%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">19.8%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">AL35</td>
+                            <td class="py-3 px-4 text-slate-300">Bono USD 2035 L. Arg</td>
+                            <td class="py-3 px-4 text-right font-mono">58.10</td>
+                            <td class="py-3 px-4 text-right font-mono text-rose-400">-0.34%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">57.2%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">17.5%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">GD35</td>
+                            <td class="py-3 px-4 text-slate-300">Bono USD 2035 L. Ext</td>
+                            <td class="py-3 px-4 text-right font-mono">60.40</td>
+                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.50%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">59.9%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">16.9%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">AE38</td>
+                            <td class="py-3 px-4 text-slate-300">Bono USD 2038 L. Arg</td>
+                            <td class="py-3 px-4 text-right font-mono">56.00</td>
+                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+1.10%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">55.4%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">17.1%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-purple-400">YMCIO</td>
+                            <td class="py-3 px-4 text-slate-300">ON YPF Cl. XXVII Vto. 2026</td>
+                            <td class="py-3 px-4 text-right font-mono">102.50</td>
+                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.10%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">101.8%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">8.5%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold text-purple-400">MRCMO</td>
+                            <td class="py-3 px-4 text-slate-300">ON Arcor Cl. 10 Vto. 2027</td>
+                            <td class="py-3 px-4 text-right font-mono">100.80</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-400">0.00%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">100.5%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">7.9%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-xs text-slate-500">
+            Desarrollado para GitHub Pages &bull; Datos de referencia de mercado local argentino.
+        </footer>
+    </div>
 
-        <!-- ================================================================= -->
-        <!-- VISTA 4: GENERADOR DE IMAGEN PARA HISTORIAS -->
-        <!-- ================================================================= -->
-        <div id="vista-historias" class="space-y-4 hidden">
-            <section class="bg-cubo-surface rounded-xl border border-cubo-border p-5 space-y-5">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-cubo-border pb-4">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-4 bg-cubo-sky rounded-full inline-block"></span>
-                            <h3 class="text-sm font-semibold text-cubo-text">Estudio de Infografías para Historias (9:16)</h3>
-                        </div>
-                        <p class="text-xs text-cubo-muted mt-0.5">Plantillas profesionales para redes sociales.</p>
-                    </div>
-                    <button onclick="descargarStoryPNG()" class="flex items-center gap-1.5 bg-cubo-sky hover:bg-sky-300 text-zinc-950 px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar PNG
-                    </button>
-                </div>
-
-                <div class="flex justify-center bg-cubo-bg p-6 rounded-xl border border-cubo-border">
-                    <div id="story-infographic" class="w-[330px] h-[500px] bg-[#141417] text-white p-4 rounded-2xl flex flex-col justify-between shadow-2xl relative overflow-hidden border border-[#2C2C32] select-none shrink-0">
-                        <div class="border-b border-[#2C2C32] pb-2 flex justify-between items-center">
-                            <span class="text-[9px] font-bold text-[#38BDF8] uppercase tracking-wider">CUBO FINANZAS</span>
-                            <span class="text-[9px] font-medium text-[#A1A1AA]">Cierre Semanal</span>
-                        </div>
-                        <div class="space-y-2 my-auto">
-                            <div class="bg-[#1E1E22]/90 p-3 rounded-lg border border-[#2E2E34] text-center">
-                                <span class="text-[8px] text-[#A1A1AA] uppercase block">MERVAL USD</span>
-                                <span class="text-base font-bold text-white" id="story-merval-usd">$1.693</span>
-                            </div>
-                        </div>
-                        <div class="border-t border-[#2C2C32] pt-2 flex justify-between items-center text-[8.5px]">
-                            <span class="text-[#A1A1AA]">cubofinanzas.com</span>
-                            <span class="text-[#38BDF8] font-semibold">@francombina7</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-    </main>
-
-    <!-- JAVASCRIPT INTEGRAL CON NAVEGACIÓN Y ANÁLISIS FUNDAMENTAL -->
-    <script>
-        let instanciaChartHistorico = null;
-        let tickerSeleccionadoActual = "AAPL";
-
-        const FUNDAMENTALS_DB = {
-            "AAPL": { ticker: "AAPL", empresa: "Apple Inc.", exchange: "NASDAQ", sector: "Technology", price: 231.50, varSem: 1.2, varYtd: 22.4, mcap: "$3,52T", pe: 32.4, eps: 7.15, roe: 145, opMargin: 31.5, hist1Y: [180, 195, 210, 205, 215, 225, 230, 220, 235, 231.5] },
-            "MSFT": { ticker: "MSFT", empresa: "Microsoft Corp.", exchange: "NASDAQ", sector: "Technology", price: 420.10, varSem: -0.8, varYtd: 15.1, mcap: "$3,12T", pe: 35.1, eps: 11.2, roe: 38.0, opMargin: 44.2, hist1Y: [360, 380, 400, 410, 425, 430, 415, 420, 425, 420.1] },
-            "GOOGL": { ticker: "GOOGL", empresa: "Alphabet Inc.", exchange: "NASDAQ", sector: "Communication Services", price: 178.30, varSem: 2.4, varYtd: 24.5, mcap: "$2,21T", pe: 24.2, eps: 7.35, roe: 30.5, opMargin: 32.1, hist1Y: [130, 140, 150, 160, 175, 170, 165, 180, 175, 178.3] },
-            "NVDA": { ticker: "NVDA", empresa: "NVIDIA Corp.", exchange: "NASDAQ", sector: "Technology", price: 128.50, varSem: 4.5, varYtd: 155.2, mcap: "$3,15T", pe: 72.1, eps: 2.68, roe: 110.0, opMargin: 62.5, hist1Y: [45, 60, 80, 95, 110, 120, 115, 125, 130, 128.5] },
-            "MELI": { ticker: "MELI", empresa: "MercadoLibre Inc.", exchange: "NASDAQ", sector: "Consumer Cyclical", price: 1980.00, varSem: 3.1, varYtd: 38.4, mcap: "$100B", pe: 58.4, eps: 34.2, roe: 35.2, opMargin: 11.4, hist1Y: [1400, 1500, 1650, 1720, 1800, 1900, 1850, 1950, 1920, 1980] }
-        };
-
-        document.addEventListener("DOMContentLoaded", () => {
-            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
-            inicializarSeccionFundamentales();
-        });
-
-        function cambiarSeccion(nombreVista) {
-            const vistas = ['inicio', 'ganadores', 'fundamentales', 'historias'];
-            vistas.forEach(v => {
-                const el = document.getElementById(`vista-${v}`);
-                const btn = document.getElementById(`nav-btn-${v}`);
-                if (v === nombreVista) {
-                    el.classList.remove('hidden');
-                    btn.className = "px-3 py-1.5 rounded-lg bg-cubo-sky text-zinc-950 font-semibold transition whitespace-nowrap flex items-center gap-1.5 shadow-sm";
-                } else {
-                    el.classList.add('hidden');
-                    btn.className = "px-3 py-1.5 rounded-lg text-cubo-muted hover:text-cubo-text transition whitespace-nowrap flex items-center gap-1.5";
-                }
-            });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if (nombreVista === 'fundamentales') {
-                seleccionarTickerFundamental(tickerSeleccionadoActual, false);
-            }
-        }
-
-        function inicializarSeccionFundamentales() {
-            renderizarPillsTickers();
-            filtrarScreener();
-            seleccionarTickerFundamental("AAPL", false);
-        }
-
-        function renderizarPillsTickers() {
-            const container = document.getElementById('barra-tickers-pills');
-            if (!container) return;
-            let html = "";
-            Object.keys(FUNDAMENTALS_DB).forEach(tk => {
-                const activo = (tk === tickerSeleccionadoActual);
-                const cls = activo ? "bg-cubo-sky text-zinc-950 font-bold" : "bg-cubo-bg text-cubo-muted hover:text-white border border-cubo-border";
-                html += `<button onclick="seleccionarTickerFundamental('${tk}', false)" class="px-2.5 py-1 rounded-lg text-xs font-mono shrink-0 transition ${cls}">${tk}</button>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function seleccionarTickerFundamental(ticker) {
-            const item = FUNDAMENTALS_DB[ticker] || FUNDAMENTALS_DB["AAPL"];
-            tickerSeleccionadoActual = item.ticker;
-            renderizarPillsTickers();
-
-            document.getElementById('fund-ticker').innerText = item.ticker;
-            document.getElementById('fund-exchange').innerText = item.exchange;
-            document.getElementById('fund-sector').innerText = item.sector;
-            document.getElementById('fund-name').innerText = item.empresa;
-            document.getElementById('fund-price').innerText = '$' + item.price.toFixed(2);
-            document.getElementById('fund-var-sem').innerText = `Sem: +${item.varSem}%`;
-            document.getElementById('fund-mcap').innerText = item.mcap;
-            document.getElementById('fund-pe').innerText = item.pe + 'x';
-            document.getElementById('fund-eps').innerText = '$' + item.eps;
-            document.getElementById('fund-roe').innerText = item.roe + '%';
-            document.getElementById('fund-op-margin').innerText = item.opMargin + '%';
-            document.getElementById('bar-op-margin').style.width = item.opMargin + '%';
-
-            renderizarGraficoHistorico(item);
-        }
-
-        function renderizarGraficoHistorico(item) {
-            const canvas = document.getElementById('canvas-precio-historico');
-            if (!canvas || typeof Chart === 'undefined') return;
-            if (instanciaChartHistorico) instanciaChartHistorico.destroy();
-
-            instanciaChartHistorico = new Chart(canvas.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct"],
-                    datasets: [{
-                        label: `${item.ticker} (USD)`,
-                        data: item.hist1Y,
-                        borderColor: '#4ADE80',
-                        backgroundColor: 'rgba(74, 222, 128, 0.14)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { color: 'rgba(46, 46, 52, 0.35)' }, ticks: { color: '#A1A1AA', font: { size: 10 } } },
-                        y: { grid: { color: 'rgba(46, 46, 52, 0.35)' }, ticks: { color: '#A1A1AA', font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        function cambiarModoGrafico(modo) {
-            document.getElementById('contenedor-grafico-nativo').classList.toggle('hidden', modo === 'tradingview');
-            document.getElementById('contenedor-grafico-tv').classList.toggle('hidden', modo !== 'tradingview');
-            if (modo === 'tradingview') {
-                new TradingView.widget({
-                    "autosize": true,
-                    "symbol": `NASDAQ:${tickerSeleccionadoActual}`,
-                    "interval": "D",
-                    "theme": "dark",
-                    "style": "1",
-                    "locale": "es",
-                    "container_id": "tradingview-widget-container"
-                });
-            }
-        }
-
-        function filtrarScreener() {
-            const tbody = document.getElementById('tabla-screener-body');
-            if (!tbody) return;
-            let html = "";
-            Object.keys(FUNDAMENTALS_DB).forEach(tk => {
-                const item = FUNDAMENTALS_DB[tk];
-                html += `
-                    <tr onclick="seleccionarTickerFundamental('${item.ticker}')" class="hover:bg-cubo-elevated/50 transition cursor-pointer">
-                        <td class="py-2.5 px-3 font-mono font-bold text-cubo-sky">${item.ticker}</td>
-                        <td class="py-2.5 px-3 text-white">${item.empresa}</td>
-                        <td class="py-2.5 px-3 text-right font-semibold text-white">$${item.price.toFixed(2)}</td>
-                        <td class="py-2.5 px-3 text-right text-emerald-400">+${item.varSem}%</td>
-                        <td class="py-2.5 px-3 text-right text-emerald-400">+${item.varYtd}%</td>
-                        <td class="py-2.5 px-3 text-right text-white">${item.mcap}</td>
-                        <td class="py-2.5 px-3 text-right">${item.pe}x</td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function sincronizarTodo() { location.reload(); }
-    </script>
 </body>
 </html>
