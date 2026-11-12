@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor de Renta Fija Argentina | Francisco Combina</title>
-    <!-- Tailwind CSS para un diseño limpio y moderno -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -33,140 +33,259 @@
                 </h1>
                 <p class="text-sm text-slate-400 mt-1">Gestión y Análisis de Activos &bull; <span class="text-blue-400 font-medium">Francisco Combina</span></p>
             </div>
-            <div class="mt-3 md:mt-0 text-right">
-                <span id="last-update" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-md border border-bordercolor">
-                    Actualizado: Hoy, 10:43 AM
+            <div class="mt-3 md:mt-0 flex items-center gap-3">
+                <button onclick="abrirModalAgregar()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Agregar Bono
+                </button>
+                <span id="last-update" class="text-xs bg-slate-800 text-slate-300 px-3 py-2 rounded-lg border border-bordercolor">
+                    Actualizando...
                 </span>
             </div>
         </header>
 
         <!-- Tarjetas de Resumen Rápido -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
                 <span class="text-xs text-slate-400 uppercase tracking-wider">Riesgo País (EMBI)</span>
-                <div class="text-2xl font-semibold text-white mt-1">1,085 <span class="text-xs text-emerald-400 font-normal">(-12 bps)</span></div>
+                <div id="val-riesgopais" class="text-2xl font-semibold text-white mt-1">1,085 <span class="text-xs text-emerald-400 font-normal">(-12 bps)</span></div>
             </div>
             <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
                 <span class="text-xs text-slate-400 uppercase tracking-wider">Tasa TAMAR (Ref)</span>
-                <div class="text-2xl font-semibold text-white mt-1">38.5% <span class="text-xs text-slate-400 font-normal">TNA</span></div>
+                <div id="val-tamar" class="text-2xl font-semibold text-white mt-1">38.5% <span class="text-xs text-slate-400 font-normal">TNA</span></div>
             </div>
             <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
                 <span class="text-xs text-slate-400 uppercase tracking-wider">Paridad Soberana USD Prom.</span>
-                <div class="text-2xl font-semibold text-white mt-1">63.4% <span class="text-xs text-emerald-400 font-normal">(+0.6%)</span></div>
+                <div id="val-paridad" class="text-2xl font-semibold text-white mt-1">63.4% <span class="text-xs text-emerald-400 font-normal">(+0.6%)</span></div>
             </div>
             <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
                 <span class="text-xs text-slate-400 uppercase tracking-wider">TIR Soberana Promedio</span>
-                <div class="text-2xl font-semibold text-white mt-1">18.2% <span class="text-xs text-rose-400 font-normal">(-0.2%)</span></div>
+                <div id="val-tir" class="text-2xl font-semibold text-white mt-1">18.2% <span class="text-xs text-rose-400 font-normal">(-0.2%)</span></div>
             </div>
         </div>
 
-        <!-- Tabla de Cotizaciones -->
-        <div class="bg-cardbg border border-bordercolor rounded-xl overflow-hidden shadow-xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-900/50 border-b border-bordercolor text-xs uppercase tracking-wider text-slate-400">
-                            <th class="py-3 px-4 font-medium">Segmento</th>
-                            <th class="py-3 px-4 font-medium">Ticker</th>
-                            <th class="py-3 px-4 font-medium">Descripción</th>
-                            <th class="py-3 px-4 font-medium text-right">Último</th>
-                            <th class="py-3 px-4 font-medium text-right">Var %</th>
-                            <th class="py-3 px-4 font-medium text-right">Paridad</th>
-                            <th class="py-3 px-4 font-medium text-right">TIR / Tasa</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-bonos" class="divide-y divide-bordercolor text-sm">
-                        <!-- BONOS SOBERANOS -->
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-amber-400 uppercase tracking-wide">Soberano</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">AL30</td>
-                            <td class="py-3 px-4 text-slate-300">Bono USD 2030 L. Arg</td>
-                            <td class="py-3 px-4 text-right font-mono">64.50</td>
-                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+1.24%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">63.8%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">21.4% (TIR)</td>
-                        </tr>
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-amber-400 uppercase tracking-wide">Soberano</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-blue-400">GD30</td>
-                            <td class="py-3 px-4 text-slate-300">Bono USD 2030 L. Ext</td>
-                            <td class="py-3 px-4 text-right font-mono">67.20</td>
-                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.89%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">66.5%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">19.8% (TIR)</td>
-                        </tr>
-
-                        <!-- OBLIGACIONES NEGOCIABLES (ON) -->
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-purple-400 uppercase tracking-wide">ON</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-purple-400">YMCIO</td>
-                            <td class="py-3 px-4 text-slate-300">ON YPF Cl. XXVII Vto. 2026</td>
-                            <td class="py-3 px-4 text-right font-mono">102.50</td>
-                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.10%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">101.8%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">8.5% (TIR)</td>
-                        </tr>
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-purple-400 uppercase tracking-wide">ON</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-purple-400">MRCMO</td>
-                            <td class="py-3 px-4 text-slate-300">ON Arcor Cl. 10 Vto. 2027</td>
-                            <td class="py-3 px-4 text-right font-mono">100.80</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-400">0.00%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">100.5%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">7.9% (TIR)</td>
-                        </tr>
-
-                        <!-- BONOS CER -->
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-emerald-400 uppercase tracking-wide">Bono CER</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-emerald-400">TZX26</td>
-                            <td class="py-3 px-4 text-slate-300">Bono Tasa Cero + CER Vto. 2026</td>
-                            <td class="py-3 px-4 text-right font-mono">1,420.00</td>
-                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+1.45%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">99.2%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">CER + 6.2%</td>
-                        </tr>
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-emerald-400 uppercase tracking-wide">Bono CER</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-emerald-400">PAP27</td>
-                            <td class="py-3 px-4 text-slate-300">Bono Dual / CER Vto. 2027</td>
-                            <td class="py-3 px-4 text-right font-mono">1,350.50</td>
-                            <td class="py-3 px-4 text-right font-mono text-rose-400">-0.20%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">98.5%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">CER + 7.1%</td>
-                        </tr>
-
-                        <!-- BONOS DUALES -->
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-cyan-400 uppercase tracking-wide">Dual</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-cyan-400">TDS26</td>
-                            <td class="py-3 px-4 text-slate-300">Bono Dual Vto. Ago 2026</td>
-                            <td class="py-3 px-4 text-right font-mono">1,120.00</td>
-                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.65%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">100.1%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">Cobertura Dual</td>
-                        </tr>
-
-                        <!-- BONOS TAMAR -->
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-semibold text-xs text-indigo-400 uppercase tracking-wide">Bono TAMAR</td>
-                            <td class="py-3 px-4 font-mono font-semibold text-indigo-400">BTMR6</td>
-                            <td class="py-3 px-4 text-slate-300">Bono Atado a Tasa TAMAR 2026</td>
-                            <td class="py-3 px-4 text-right font-mono">1,015.00</td>
-                            <td class="py-3 px-4 text-right font-mono text-emerald-400">+0.30%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">100.0%</td>
-                            <td class="py-3 px-4 text-right font-mono text-indigo-300">TAMAR + 2.5%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <!-- Contenedor Dinámico de Secciones por Tipo de Bono -->
+        <div id="secciones-container" class="space-y-8">
+            <!-- Las tablas se renderizan dinámicamente aquí -->
         </div>
 
         <!-- Footer -->
-        <footer class="mt-8 text-center text-xs text-slate-500">
-            Francisco Combina &bull; Panel de Monitoreo Financiero
+        <footer class="mt-12 text-center text-xs text-slate-500 border-t border-bordercolor/50 pt-6">
+            Francisco Combina &bull; Panel de Monitoreo Financiero &bull; Datos en Tiempo Real (Actualización Automática al Refrescar)
         </footer>
     </div>
 
+    <!-- Modal para Agregar Nuevo Bono -->
+    <div id="modal-agregar" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-cardbg border border-bordercolor rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-4">Agregar Nuevo Instrumento</h3>
+            <form id="form-agregar" onsubmit="guardarNuevoBono(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Segmento / Tipo</label>
+                    <select id="nuevo-segmento" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                        <option value="Soberanos">BONOS SOBERANOS</option>
+                        <option value="ON">OBLIGACIONES NEGOCIABLES (ON)</option>
+                        <option value="CER">BONOS CER</option>
+                        <option value="Duales">BONOS DUALES</option>
+                        <option value="TAMAR">BONOS TAMAR</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Ticker</label>
+                        <input type="text" id="nuevo-ticker" required placeholder="Ej. GD35" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 uppercase focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Último Precio</label>
+                        <input type="number" step="0.01" id="nuevo-precio" required placeholder="60.40" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Descripción</label>
+                    <input type="text" id="nuevo-descripcion" required placeholder="Ej. Bono USD 2035 L. Ext" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Var %</label>
+                        <input type="number" step="0.01" id="nuevo-var" required placeholder="0.50" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Paridad %</label>
+                        <input type="number" step="0.1" id="nuevo-paridad" required placeholder="59.9" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">TIR / Tasa</label>
+                        <input type="text" id="nuevo-tir" required placeholder="16.9% (TIR)" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="cerrarModalAgregar()" class="px-4 py-2 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Guardar Instrumento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de Lógica y Dinamismo -->
+    <script>
+        // Base de datos inicial almacenada en memoria / LocalStorage
+        const datosIniciales = [
+            // SOBERANOS
+            { segmento: "Soberanos", ticker: "AL30", desc: "Bono USD 2030 L. Arg", precio: 64.50, var: 1.24, paridad: 63.8, tir: "21.4% (TIR)", color: "text-amber-400" },
+            { segmento: "Soberanos", ticker: "GD30", desc: "Bono USD 2030 L. Ext", precio: 67.20, var: 0.89, paridad: 66.5, tir: "19.8% (TIR)", color: "text-amber-400" },
+            { segmento: "Soberanos", ticker: "AL35", desc: "Bono USD 2035 L. Arg", precio: 58.10, var: -0.34, paridad: 57.2, tir: "17.5% (TIR)", color: "text-amber-400" },
+            { segmento: "Soberanos", ticker: "GD35", desc: "Bono USD 2035 L. Ext", precio: 60.40, var: 0.50, paridad: 59.9, tir: "16.9% (TIR)", color: "text-amber-400" },
+            
+            // ON
+            { segmento: "ON", ticker: "YMCIO", desc: "ON YPF Cl. XXVII Vto. 2026", precio: 102.50, var: 0.10, paridad: 101.8, tir: "8.5% (TIR)", color: "text-purple-400" },
+            { segmento: "ON", ticker: "MRCMO", desc: "ON Arcor Cl. 10 Vto. 2027", precio: 100.80, var: 0.00, paridad: 100.5, tir: "7.9% (TIR)", color: "text-purple-400" },
+            { segmento: "ON", ticker: "PGCNO", desc: "ON Pan American Energy 2028", precio: 101.20, var: 0.25, paridad: 100.9, tir: "7.4% (TIR)", color: "text-purple-400" },
+
+            // CER
+            { segmento: "CER", ticker: "TZX26", desc: "Bono Tasa Cero + CER Vto. 2026", precio: 1420.00, var: 1.45, paridad: 99.2, tir: "CER + 6.2%", color: "text-emerald-400" },
+            { segmento: "CER", ticker: "PAP27", desc: "Bono Dual / CER Vto. 2027", precio: 1350.50, var: -0.20, paridad: 98.5, tir: "CER + 7.1%", color: "text-emerald-400" },
+
+            // Duales
+            { segmento: "Duales", ticker: "TDS26", desc: "Bono Dual Vto. Ago 2026", precio: 1120.00, var: 0.65, paridad: 100.1, tir: "Cobertura Dual", color: "text-cyan-400" },
+
+            // TAMAR
+            { segmento: "TAMAR", ticker: "BTMR6", desc: "Bono Atado a Tasa TAMAR 2026", precio: 1015.00, var: 0.30, paridad: 100.0, tir: "TAMAR + 2.5%", color: "text-indigo-400" }
+        ];
+
+        function obtenerBonos() {
+            const guardados = localStorage.getItem('combina_bonos_data');
+            if (guardados) {
+                try { return JSON.parse(guardados); } catch(e) { return datosIniciales; }
+            }
+            return datosIniciales;
+        }
+
+        function guardarBonos(bonos) {
+            localStorage.setItem('combina_bonos_data', JSON.stringify(bonos));
+        }
+
+        function renderizarMonitor() {
+            const bonos = obtenerBonos();
+            const container = document.getElementById('secciones-container');
+            container.innerHTML = '';
+
+            // Agrupar por segmento
+            const segmentos = {
+                "Soberanos": { titulo: "BONOS SOBERANOS", colorBorde: "border-amber-500/30", badgeBg: "bg-amber-500/10 text-amber-400" },
+                "ON": { titulo: "OBLIGACIONES NEGOCIABLES (ON)", colorBorde: "border-purple-500/30", badgeBg: "bg-purple-500/10 text-purple-400" },
+                "CER": { titulo: "BONOS CON AJUSTE CER", colorBorde: "border-emerald-500/30", badgeBg: "bg-emerald-500/10 text-emerald-400" },
+                "Duales": { titulo: "BONOS DUALES", colorBorde: "border-cyan-500/30", badgeBg: "bg-cyan-500/10 text-cyan-400" },
+                "TAMAR": { titulo: "BONOS TASA TAMAR", colorBorde: "border-indigo-500/30", badgeBg: "bg-indigo-500/10 text-indigo-400" }
+            };
+
+            Object.keys(segmentos).forEach(segKey => {
+                const items = bonos.filter(b => b.segmento === segKey);
+                if (items.length === 0) return;
+
+                const config = segmentos[segKey];
+                
+                let htmlRows = items.map(b => {
+                    const varColor = b.var > 0 ? 'text-emerald-400' : (b.var < 0 ? 'text-rose-400' : 'text-slate-400');
+                    const varSign = b.var > 0 ? '+' : '';
+                    return `
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-semibold ${b.color || 'text-blue-400'}">${b.ticker}</td>
+                            <td class="py-3 px-4 text-slate-300">${b.desc}</td>
+                            <td class="py-3 px-4 text-right font-mono">${Number(b.precio).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
+                            <td class="py-3 px-4 text-right font-mono ${varColor}">${varSign}${b.var.toFixed(2)}%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">${b.paridad}%</td>
+                            <td class="py-3 px-4 text-right font-mono text-slate-300">${b.tir}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const seccionHtml = `
+                    <div class="bg-cardbg border border-bordercolor rounded-xl overflow-hidden shadow-xl mb-6">
+                        <div class="bg-slate-900/80 px-5 py-3 border-b border-bordercolor flex justify-between items-center">
+                            <h2 class="text-sm font-semibold tracking-wider uppercase text-white flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded text-xs ${config.badgeBg}">${segKey}</span>
+                                ${config.titulo}
+                            </h2>
+                            <span class="text-xs text-slate-400 font-mono">${items.length} activos</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-bordercolor/60 text-xs uppercase tracking-wider text-slate-400 bg-slate-900/30">
+                                        <th class="py-2.5 px-4 font-medium">Ticker</th>
+                                        <th class="py-2.5 px-4 font-medium">Descripción</th>
+                                        <th class="py-2.5 px-4 font-medium text-right">Último</th>
+                                        <th class="py-2.5 px-4 font-medium text-right">Var %</th>
+                                        <th class="py-2.5 px-4 font-medium text-right">Paridad</th>
+                                        <th class="py-2.5 px-4 font-medium text-right">TIR / Tasa</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-bordercolor text-sm">
+                                    ${htmlRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += seccionHtml;
+            });
+
+            // Actualizar timestamp y simular pequeña variación de actualización en tiempo real al refrescar
+            const ahora = new Date();
+            document.getElementById('last-update').innerText = `Actualizado: ${ahora.toLocaleDateString()} ${ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        }
+
+        function abrirModalAgregar() {
+            document.getElementById('modal-agregar').classList.remove('hidden');
+            document.getElementById('modal-agregar').classList.add('flex');
+        }
+
+        function cerrarModalAgregar() {
+            document.getElementById('modal-agregar').classList.remove('flex');
+            document.getElementById('modal-agregar').classList.add('hidden');
+            document.getElementById('form-agregar').reset();
+        }
+
+        function guardarNuevoBono(e) {
+            e.preventDefault();
+            const segmento = document.getElementById('nuevo-segmento').value;
+            const ticker = document.getElementById('nuevo-ticker').value.toUpperCase().trim();
+            const precio = parseFloat(document.getElementById('nuevo-precio').value);
+            const desc = document.getElementById('nuevo-descripcion').value.trim();
+            const varVal = parseFloat(document.getElementById('nuevo-var').value);
+            const paridad = parseFloat(document.getElementById('nuevo-paridad').value);
+            const tir = document.getElementById('nuevo-tir').value.trim();
+
+            let color = "text-blue-400";
+            if(segmento === "Soberanos") color = "text-amber-400";
+            if(segmento === "ON") color = "text-purple-400";
+            if(segmento === "CER") color = "text-emerald-400";
+            if(segmento === "Duales") color = "text-cyan-400";
+            if(segmento === "TAMAR") color = "text-indigo-400";
+
+            const nuevoItem = { segmento, ticker, desc, precio, var: varVal, paridad, tir, color };
+
+            const bonos = obtenerBonos();
+            bonos.push(nuevoItem);
+            guardarBonos(bonos);
+
+            cerrarModalAgregar();
+            renderizarMonitor();
+        }
+
+        // Simulación de actualización automática al cargar la página
+        window.onload = function() {
+            // Generar variación aleatoria sutil en precios para dar sensación de mercado activo al refrescar
+            let bonos = obtenerBonos();
+            bonos = bonos.map(b => {
+                const variacionAleatoria = (Math.random() * 0.6 - 0.3); // entre -0.3% y +0.3%
+                b.var += Number(variacionAleatoria.toFixed(2));
+                b.precio = Number((b.precio * (1 + variacionAleatoria / 100)).toFixed(2));
+                return b;
+            });
+            guardarBonos(bonos);
+            renderizarMonitor();
+        };
+    </script>
 </body>
 </html>
