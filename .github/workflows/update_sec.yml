@@ -3,7 +3,8 @@ name: Actualizar Fundamentales SEC
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 10 * * 1"
+    - cron: "0 22 * * 1-5"   # Lunes a viernes 19:00 hs ARG (después del cierre NYSE)
+
 
 permissions:
   contents: write
