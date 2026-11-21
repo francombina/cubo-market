@@ -291,7 +291,41 @@
       text-align: right;
     }
 
-    /* Panel Comparador Histórico 10A */
+    /* Segmented toggle (Anual / Trimestral + Rango) */
+    .freq-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .segmented {
+      display: inline-flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent);
+    }
+
+    /* Panel Comparador Histórico */
     .compare-panel {
       display: none;
       background: var(--surface);
@@ -438,7 +472,7 @@
 
     .modal-chart-wrap {
       position: relative;
-      height: 260px;
+      height: 265px;
       width: 100%;
       margin-top: 10px;
     }
@@ -503,8 +537,8 @@
   <div class="container">
     <header class="header">
       <div class="title-group">
-        <h1>Fundamentales EEUU <span class="badge">SEC EDGAR · 10 Años</span></h1>
-        <p class="subtitle">Balances anuales 10-K, múltiplos de valuación y evolución histórica de 10 años.</p>
+        <h1>Fundamentales EEUU <span class="badge">SEC EDGAR · Anual &amp; Trimestral</span></h1>
+        <p class="subtitle">Balances 10-K y 10-Q, múltiplos de valuación y evolución histórica hasta 10 años.</p>
       </div>
       <div class="meta-actions">
         <div class="updated-pill" id="updatedAt">Cargando datos...</div>
@@ -520,7 +554,7 @@
         <button class="tab-btn" data-view="profitability" type="button">Rentabilidad y Caja</button>
         <button class="tab-btn" data-view="balance" type="button">Balance</button>
         <button class="tab-btn" data-view="all" type="button">Todo</button>
-        <button class="tab-btn" data-view="charts" type="button">Gráficos 10A</button>
+        <button class="tab-btn" data-view="charts" type="button">Gráficos</button>
       </div>
       <input
         type="text"
@@ -540,25 +574,37 @@
           </tbody>
         </table>
       </div>
-      <p class="hint">Hacé clic en una empresa para ver sus gráficos históricos de 10 años y la ficha completa.</p>
+      <p class="hint">Hacé clic en una empresa para ver sus gráficos anuales o trimestrales y la ficha completa.</p>
     </div>
 
-    <!-- Vista Comparador de Gráficos 10A -->
+    <!-- Vista Comparador de Gráficos -->
     <section class="compare-panel" id="comparePanel">
       <div class="compare-controls">
+        <div class="control-row">
+          <span class="control-label">Período:</span>
+          <div class="freq-bar">
+            <div class="segmented" id="compareFreqToggle">
+              <button type="button" class="seg-btn active" data-cmp-freq="annual">Anual (10A)</button>
+              <button type="button" class="seg-btn" data-cmp-freq="quarterly">Trimestral</button>
+            </div>
+            <div class="segmented hidden" id="compareRangeToggle">
+              <button type="button" class="seg-btn" data-cmp-range="12">3A</button>
+              <button type="button" class="seg-btn active" data-cmp-range="20">5A</button>
+              <button type="button" class="seg-btn" data-cmp-range="40">10A</button>
+            </div>
+          </div>
+        </div>
         <div class="control-row" id="compareMetricPills"></div>
         <div class="control-row" id="compareTickerPills"></div>
       </div>
       <div class="chart-box-lg">
         <canvas id="compareCanvas"></canvas>
       </div>
-      <p class="chart-note">
-        P/E histórico calculado con precio de cierre al fin de año fiscal (ajustado por splits, sin descontar dividendos) sobre EPS diluido ajustado. PEG histórico = P/E ÷ CAGR 3 años del EPS.
-      </p>
+      <p class="chart-note" id="compareChartNote"></p>
     </section>
   </div>
 
-  <!-- Modal de Ficha Detallada + Gráfico 10A -->
+  <!-- Modal de Ficha Detallada + Gráfico -->
   <div class="modal-backdrop" id="detailModal">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -571,13 +617,24 @@
 
       <div class="modal-chart-card" id="modalChartCard">
         <div class="modal-chart-top">
-          <span class="control-label">Evolución Histórica (10 años)</span>
+          <div class="freq-bar">
+            <div class="segmented" id="modalFreqToggle">
+              <button type="button" class="seg-btn active" data-modal-freq="annual">Anual</button>
+              <button type="button" class="seg-btn" data-modal-freq="quarterly">Trimestral</button>
+            </div>
+            <div class="segmented hidden" id="modalRangeToggle">
+              <button type="button" class="seg-btn" data-modal-range="12">3A</button>
+              <button type="button" class="seg-btn active" data-modal-range="20">5A</button>
+              <button type="button" class="seg-btn" data-modal-range="40">10A</button>
+            </div>
+          </div>
           <div class="chart-stats" id="modalChartStats"></div>
         </div>
         <div class="control-row" id="modalMetricPills"></div>
         <div class="modal-chart-wrap">
           <canvas id="modalCanvas"></canvas>
         </div>
+        <p class="chart-note" id="modalChartNote"></p>
       </div>
 
       <div id="modalContent"></div>
@@ -630,10 +687,10 @@
     };
 
     const HISTORY_METRICS = [
-      { key: "pe", label: "P/E", fmt: "mult" },
-      { key: "peg", label: "PEG", fmt: "num2" },
-      { key: "roe", label: "ROE", fmt: "pct" },
-      { key: "roa", label: "ROA", fmt: "pct" },
+      { key: "pe", label: "P/E", fmt: "mult", ttmInQuarterly: true },
+      { key: "peg", label: "PEG", fmt: "num2", ttmInQuarterly: true },
+      { key: "roe", label: "ROE", fmt: "pct", ttmInQuarterly: true },
+      { key: "roa", label: "ROA", fmt: "pct", ttmInQuarterly: true },
       { key: "net_margin", label: "Net Margin", fmt: "pct" },
       { key: "operating_margin", label: "Op. Margin", fmt: "pct" },
       { key: "revenue", label: "Revenue", fmt: "compactUsd" },
@@ -661,12 +718,17 @@
     let sortDir = "desc";
     let searchTerm = "";
 
-    // Estado de gráficos
+    // Estado de gráficos (Modal)
     let modalItem = null;
     let modalMetric = "pe";
+    let modalFreq = "annual";
+    let modalQRange = 20;
     let modalChart = null;
 
+    // Estado de gráficos (Comparador)
     let compareMetric = "pe";
+    let compareFreq = "annual";
+    let compareQRange = 20;
     let compareTickers = new Set();
     let compareChart = null;
 
@@ -742,6 +804,13 @@
 
     function getMetricMeta(key) {
       return HISTORY_METRICS.find((m) => m.key === key) || HISTORY_METRICS[0];
+    }
+
+    function getChartNote(freq) {
+      if (freq === "quarterly") {
+        return "Vista trimestral (10-Q + Q4 derivado): Revenue, Net Income, FCF, EPS y Márgenes reflejan cada trimestre aislado; P/E, PEG, ROE y ROA se calculan en base TTM (suma de los últimos 4 trimestres) para mantener comparabilidad.";
+      }
+      return "Vista anual (10-K): P/E calculado con precio de cierre del año fiscal (ajustado por splits, sin descontar dividendos) sobre EPS diluido ajustado. PEG = P/E ÷ CAGR 3 años del EPS.";
     }
 
     function renderKPIs(items) {
@@ -848,7 +917,17 @@
         .join("");
     }
 
-    /* ==================== GRÁFICO EN MODAL (1 EMPRESA, 10 AÑOS) ==================== */
+    /* ==================== GRÁFICO EN MODAL (ANUAL / TRIMESTRAL) ==================== */
+    function updateModalToggles() {
+      document.querySelectorAll("#modalFreqToggle .seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.modalFreq === modalFreq);
+      });
+      document.getElementById("modalRangeToggle").classList.toggle("hidden", modalFreq !== "quarterly");
+      document.querySelectorAll("#modalRangeToggle .seg-btn").forEach((b) => {
+        b.classList.toggle("active", Number(b.dataset.modalRange) === modalQRange);
+      });
+    }
+
     function renderModalMetricPills() {
       document.getElementById("modalMetricPills").innerHTML = HISTORY_METRICS.map(
         (m) => `
@@ -856,55 +935,62 @@
           type="button"
           class="pill-btn ${modalMetric === m.key ? "active" : ""}"
           data-modal-metric="${m.key}"
-        >${m.label}</button>`
+        >${m.label}${modalFreq === "quarterly" && m.ttmInQuarterly ? " (TTM)" : ""}</button>`
       ).join("");
     }
 
     function renderModalChart() {
       if (!modalItem) return;
-      const card = document.getElementById("modalChartCard");
-      const hist = Array.isArray(modalItem.history) ? modalItem.history : [];
+      updateModalToggles();
 
-      if (!hist.length) {
-        card.classList.add("hidden");
-        return;
-      }
-      card.classList.remove("hidden");
+      const isQ = modalFreq === "quarterly";
+      const source = isQ
+        ? (Array.isArray(modalItem.quarterly_history) ? modalItem.quarterly_history.slice(-modalQRange) : [])
+        : (Array.isArray(modalItem.history) ? modalItem.history : []);
 
       const meta = getMetricMeta(modalMetric);
-      const labels = hist.map((h) => String(h.year));
-      const values = hist.map((h) => (typeof h[modalMetric] === "number" ? h[modalMetric] : null));
+      document.getElementById("modalChartNote").textContent = getChartNote(modalFreq);
+
+      const ctx = document.getElementById("modalCanvas").getContext("2d");
+      if (modalChart) modalChart.destroy();
+
+      if (!source.length) {
+        document.getElementById("modalChartStats").innerHTML =
+          `<span>Sin datos ${isQ ? "trimestrales (ejecutá la GitHub Action para generarlos)" : "históricos"}</span>`;
+        return;
+      }
+
+      const labels = source.map((h) => (isQ ? h.period : String(h.year)));
+      const values = source.map((h) => (typeof h[modalMetric] === "number" ? h[modalMetric] : null));
       const validNums = values.filter((v) => v !== null);
 
       const avgVal = validNums.length ? avg(validNums) : null;
       const minVal = validNums.length ? Math.min(...validNums) : null;
       const maxVal = validNums.length ? Math.max(...validNums) : null;
       const lastVal = validNums.length ? validNums[validNums.length - 1] : null;
+      const avgLabel = isQ ? `Prom. ${source.length}T` : "Prom. 10A";
 
       document.getElementById("modalChartStats").innerHTML = `
         <span>Último: <strong>${formatValue(lastVal, meta.fmt)}</strong></span>
-        <span>Prom. 10A: <strong>${formatValue(avgVal, meta.fmt)}</strong></span>
+        <span>${avgLabel}: <strong>${formatValue(avgVal, meta.fmt)}</strong></span>
         <span>Rango: <strong>${formatValue(minVal, meta.fmt)} – ${formatValue(maxVal, meta.fmt)}</strong></span>
       `;
 
-      const ctx = document.getElementById("modalCanvas").getContext("2d");
-      if (modalChart) modalChart.destroy();
-
-      const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+      const gradient = ctx.createLinearGradient(0, 0, 0, 265);
       gradient.addColorStop(0, "rgba(56, 189, 248, 0.28)");
       gradient.addColorStop(1, "rgba(56, 189, 248, 0.0)");
 
       const datasets = [
         {
-          label: `${modalItem.ticker} · ${meta.label}`,
+          label: `${modalItem.ticker} · ${meta.label}${isQ && meta.ttmInQuarterly ? " (TTM)" : ""}`,
           data: values,
           borderColor: "#38bdf8",
           backgroundColor: gradient,
-          borderWidth: 2.5,
-          pointRadius: 4,
+          borderWidth: 2.3,
+          pointRadius: isQ && source.length > 24 ? 2 : 3.5,
           pointHoverRadius: 6,
           pointBackgroundColor: "#38bdf8",
-          tension: 0.25,
+          tension: 0.22,
           fill: true,
           spanGaps: true
         }
@@ -912,7 +998,7 @@
 
       if (avgVal !== null) {
         datasets.push({
-          label: `Promedio 10A (${formatValue(avgVal, meta.fmt)})`,
+          label: `${avgLabel} (${formatValue(avgVal, meta.fmt)})`,
           data: labels.map(() => avgVal),
           borderColor: "#fbbf24",
           borderWidth: 1.5,
@@ -944,8 +1030,8 @@
               callbacks: {
                 title: (items) => {
                   const idx = items[0]?.dataIndex;
-                  const fy = hist[idx]?.fy_end;
-                  return fy ? `Año ${labels[idx]} (cierre ${fy})` : labels[idx];
+                  const fy = source[idx]?.fy_end;
+                  return fy ? `${labels[idx]} (cierre ${fy})` : labels[idx];
                 },
                 label: (ctxItem) => `${ctxItem.dataset.label}: ${formatValue(ctxItem.parsed.y, meta.fmt)}`
               }
@@ -954,7 +1040,10 @@
           scales: {
             x: {
               grid: { color: "rgba(37, 51, 74, 0.45)" },
-              ticks: { color: "#8fa3bf" }
+              ticks: {
+                color: "#8fa3bf",
+                maxTicksLimit: isQ ? 10 : 12
+              }
             },
             y: {
               grid: { color: "rgba(37, 51, 74, 0.45)" },
@@ -973,8 +1062,8 @@
       if (!item) return;
       modalItem = item;
 
-      // Si la empresa no tiene P/E histórico (ej. BRK-B), abrir en ROE automáticamente
-      const hasCurrentMetric = (item.history || []).some((h) => typeof h[modalMetric] === "number");
+      const list = modalFreq === "quarterly" ? (item.quarterly_history || []) : (item.history || []);
+      const hasCurrentMetric = list.some((h) => typeof h[modalMetric] === "number");
       if (!hasCurrentMetric) modalMetric = "roe";
 
       document.getElementById("modalTitle").textContent = `${item.ticker} — ${item.name}`;
@@ -1052,8 +1141,16 @@
       document.getElementById("detailModal").classList.remove("open");
     }
 
-    /* ==================== COMPARADOR MULTI-EMPRESA (10 AÑOS) ==================== */
+    /* ==================== COMPARADOR MULTI-EMPRESA ==================== */
     function renderCompareControls() {
+      document.querySelectorAll("#compareFreqToggle .seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.cmpFreq === compareFreq);
+      });
+      document.getElementById("compareRangeToggle").classList.toggle("hidden", compareFreq !== "quarterly");
+      document.querySelectorAll("#compareRangeToggle .seg-btn").forEach((b) => {
+        b.classList.toggle("active", Number(b.dataset.cmpRange) === compareQRange);
+      });
+
       document.getElementById("compareMetricPills").innerHTML =
         `<span class="control-label">Métrica:</span>` +
         HISTORY_METRICS.map(
@@ -1062,7 +1159,7 @@
             type="button"
             class="pill-btn ${compareMetric === m.key ? "active" : ""}"
             data-cmp-metric="${m.key}"
-          >${m.label}</button>`
+          >${m.label}${compareFreq === "quarterly" && m.ttmInQuarterly ? " (TTM)" : ""}</button>`
         ).join("");
 
       document.getElementById("compareTickerPills").innerHTML =
@@ -1085,30 +1182,41 @@
     }
 
     function renderCompareChart() {
+      const isQ = compareFreq === "quarterly";
       const meta = getMetricMeta(compareMetric);
+      document.getElementById("compareChartNote").textContent = getChartNote(compareFreq);
+
+      const fieldName = isQ ? "quarterly_history" : "history";
+      const keyProp = isQ ? "period" : "year";
+
       const selectedItems = rawItems
         .map((item, idx) => ({ item, color: PALETTE[idx % PALETTE.length] }))
-        .filter(({ item }) => compareTickers.has(item.ticker) && Array.isArray(item.history));
+        .filter(({ item }) => compareTickers.has(item.ticker) && Array.isArray(item[fieldName]));
 
-      // Construir eje X común con todos los años presentes
-      const yearSet = new Set();
-      selectedItems.forEach(({ item }) => item.history.forEach((h) => yearSet.add(h.year)));
-      const years = Array.from(yearSet).sort((a, b) => a - b);
+      const labelSet = new Set();
+      selectedItems.forEach(({ item }) =>
+        item[fieldName].forEach((h) => labelSet.add(String(h[keyProp])))
+      );
+
+      let labels = Array.from(labelSet).sort((a, b) => a.localeCompare(b));
+      if (isQ) {
+        labels = labels.slice(-compareQRange);
+      }
 
       const datasets = selectedItems.map(({ item, color }) => {
-        const byYear = new Map(item.history.map((h) => [h.year, h[compareMetric]]));
+        const byKey = new Map(item[fieldName].map((h) => [String(h[keyProp]), h[compareMetric]]));
         return {
           label: item.ticker,
-          data: years.map((y) => {
-            const v = byYear.get(y);
+          data: labels.map((lbl) => {
+            const v = byKey.get(lbl);
             return typeof v === "number" ? v : null;
           }),
           borderColor: color,
           backgroundColor: color,
-          borderWidth: 2.4,
-          pointRadius: 3.5,
+          borderWidth: 2.2,
+          pointRadius: isQ && labels.length > 24 ? 2 : 3.5,
           pointHoverRadius: 6,
-          tension: 0.22,
+          tension: 0.2,
           fill: false,
           spanGaps: true
         };
@@ -1119,7 +1227,7 @@
 
       compareChart = new Chart(ctx, {
         type: "line",
-        data: { labels: years.map(String), datasets },
+        data: { labels, datasets },
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -1143,7 +1251,10 @@
           scales: {
             x: {
               grid: { color: "rgba(37, 51, 74, 0.45)" },
-              ticks: { color: "#8fa3bf" }
+              ticks: {
+                color: "#8fa3bf",
+                maxTicksLimit: isQ ? 10 : 12
+              }
             },
             y: {
               grid: { color: "rgba(37, 51, 74, 0.45)" },
@@ -1208,7 +1319,6 @@
         sortKey = "revenue";
       }
 
-      // Preseleccionar las 4 primeras empresas para el comparador histórico
       if (compareTickers.size === 0) {
         rawItems.slice(0, 4).forEach((d) => compareTickers.add(d.ticker));
       }
@@ -1250,7 +1360,22 @@
       if (tr) openDetailModal(tr.dataset.ticker);
     });
 
-    // Eventos del gráfico en modal
+    // Eventos Modal
+    document.getElementById("modalFreqToggle").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-modal-freq]");
+      if (!btn) return;
+      modalFreq = btn.dataset.modalFreq;
+      renderModalMetricPills();
+      renderModalChart();
+    });
+
+    document.getElementById("modalRangeToggle").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-modal-range]");
+      if (!btn) return;
+      modalQRange = Number(btn.dataset.modalRange);
+      renderModalChart();
+    });
+
     document.getElementById("modalMetricPills").addEventListener("click", (e) => {
       const btn = e.target.closest("[data-modal-metric]");
       if (!btn) return;
@@ -1259,7 +1384,23 @@
       renderModalChart();
     });
 
-    // Eventos del comparador 10A
+    // Eventos Comparador
+    document.getElementById("compareFreqToggle").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-cmp-freq]");
+      if (!btn) return;
+      compareFreq = btn.dataset.cmpFreq;
+      renderCompareControls();
+      renderCompareChart();
+    });
+
+    document.getElementById("compareRangeToggle").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-cmp-range]");
+      if (!btn) return;
+      compareQRange = Number(btn.dataset.cmpRange);
+      renderCompareControls();
+      renderCompareChart();
+    });
+
     document.getElementById("compareMetricPills").addEventListener("click", (e) => {
       const btn = e.target.closest("[data-cmp-metric]");
       if (!btn) return;
