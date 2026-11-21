@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monitor de Fundamentales EEUU | SEC EDGAR</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg: #0b111b;
@@ -53,6 +54,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .badge {
@@ -289,11 +291,87 @@
       text-align: right;
     }
 
+    /* Panel Comparador Histórico 10A */
+    .compare-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .compare-panel.active { display: block; }
+
+    .compare-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    .pill-btn {
+      background: var(--surface-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-btn:hover { color: var(--text); border-color: #3b5275; }
+
+    .pill-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .ticker-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .chart-box-lg {
+      position: relative;
+      height: 410px;
+      width: 100%;
+    }
+
+    .chart-note {
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
     /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(5, 9, 16, 0.78);
+      background: rgba(5, 9, 16, 0.8);
       display: none;
       align-items: center;
       justify-content: center;
@@ -308,8 +386,8 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       width: 100%;
-      max-width: 780px;
-      max-height: 90vh;
+      max-width: 880px;
+      max-height: 92vh;
       overflow-y: auto;
       padding: 22px 24px;
     }
@@ -321,11 +399,49 @@
       gap: 12px;
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .modal-title { font-size: 1.3rem; font-weight: 700; }
     .modal-sub { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+    /* Chart dentro del Modal */
+    .modal-chart-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .modal-chart-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .chart-stats {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .chart-stats strong {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .modal-chart-wrap {
+      position: relative;
+      height: 260px;
+      width: 100%;
+      margin-top: 10px;
+    }
 
     .modal-section-title {
       font-size: 0.76rem;
@@ -380,14 +496,15 @@
     }
 
     .sec-link:hover { text-decoration: underline; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div class="container">
     <header class="header">
       <div class="title-group">
-        <h1>Fundamentales EEUU <span class="badge">SEC EDGAR + Mercado</span></h1>
-        <p class="subtitle">Balances anuales 10-K, múltiplos de valuación y rentabilidad actualizados automáticamente.</p>
+        <h1>Fundamentales EEUU <span class="badge">SEC EDGAR · 10 Años</span></h1>
+        <p class="subtitle">Balances anuales 10-K, múltiplos de valuación y evolución histórica de 10 años.</p>
       </div>
       <div class="meta-actions">
         <div class="updated-pill" id="updatedAt">Cargando datos...</div>
@@ -401,8 +518,9 @@
       <div class="tabs" id="viewTabs">
         <button class="tab-btn active" data-view="valuation" type="button">Valuación</button>
         <button class="tab-btn" data-view="profitability" type="button">Rentabilidad y Caja</button>
-        <button class="tab-btn" data-view="balance" type="button">Balance y Solvencia</button>
-        <button class="tab-btn" data-view="all" type="button">Todas las columnas</button>
+        <button class="tab-btn" data-view="balance" type="button">Balance</button>
+        <button class="tab-btn" data-view="all" type="button">Todo</button>
+        <button class="tab-btn" data-view="charts" type="button">Gráficos 10A</button>
       </div>
       <input
         type="text"
@@ -412,18 +530,35 @@
       />
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead id="tableHead"></thead>
-        <tbody id="tableBody">
-          <tr><td class="status-msg">Descargando datos desde GitHub...</td></tr>
-        </tbody>
-      </table>
+    <!-- Vista Tabla -->
+    <div id="tableSection">
+      <div class="table-wrap">
+        <table>
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody">
+            <tr><td class="status-msg">Descargando datos desde GitHub...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">Hacé clic en una empresa para ver sus gráficos históricos de 10 años y la ficha completa.</p>
     </div>
-    <p class="hint">Hacé clic en cualquier encabezado para ordenar o en una fila para ver la ficha completa.</p>
+
+    <!-- Vista Comparador de Gráficos 10A -->
+    <section class="compare-panel" id="comparePanel">
+      <div class="compare-controls">
+        <div class="control-row" id="compareMetricPills"></div>
+        <div class="control-row" id="compareTickerPills"></div>
+      </div>
+      <div class="chart-box-lg">
+        <canvas id="compareCanvas"></canvas>
+      </div>
+      <p class="chart-note">
+        P/E histórico calculado con precio de cierre al fin de año fiscal (ajustado por splits, sin descontar dividendos) sobre EPS diluido ajustado. PEG histórico = P/E ÷ CAGR 3 años del EPS.
+      </p>
+    </section>
   </div>
 
-  <!-- Modal de Ficha Detallada -->
+  <!-- Modal de Ficha Detallada + Gráfico 10A -->
   <div class="modal-backdrop" id="detailModal">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -433,7 +568,20 @@
         </div>
         <button class="btn" id="closeModalBtn" type="button">Cerrar</button>
       </div>
+
+      <div class="modal-chart-card" id="modalChartCard">
+        <div class="modal-chart-top">
+          <span class="control-label">Evolución Histórica (10 años)</span>
+          <div class="chart-stats" id="modalChartStats"></div>
+        </div>
+        <div class="control-row" id="modalMetricPills"></div>
+        <div class="modal-chart-wrap">
+          <canvas id="modalCanvas"></canvas>
+        </div>
+      </div>
+
       <div id="modalContent"></div>
+
       <div class="modal-footer">
         <a id="secLink" class="sec-link" href="#" target="_blank" rel="noopener noreferrer">
           Ver balances originales en SEC EDGAR →
@@ -447,6 +595,11 @@
     const RAW_JSON_URL =
       "https://raw.githubusercontent.com/francombina/cubo-market/refs/heads/main/data/fundamentales.json";
 
+    const PALETTE = [
+      "#38bdf8", "#4ade80", "#fbbf24", "#f472b6", "#a78bfa",
+      "#fb923c", "#2dd4bf", "#f87171", "#c084fc", "#60a5fa"
+    ];
+
     const COLUMNS = {
       price: { label: "Precio", fmt: "price" },
       market_cap: { label: "Market Cap", fmt: "compactUsd" },
@@ -457,7 +610,7 @@
       price_to_fcf: { label: "P / FCF", fmt: "mult" },
       ev_to_ebitda: { label: "EV / EBITDA", fmt: "mult" },
       eps_diluted: { label: "EPS Dil.", fmt: "price" },
-      eps_cagr_2y: { label: "EPS CAGR 2Y", fmt: "pct", color: "posNeg" },
+      eps_cagr_2y: { label: "EPS CAGR", fmt: "pct", color: "posNeg" },
       revenue: { label: "Revenue", fmt: "compactUsd" },
       operating_income: { label: "EBIT", fmt: "compactUsd" },
       net_income: { label: "Net Income", fmt: "compactUsd" },
@@ -476,6 +629,20 @@
       fy_end: { label: "Cierre FY", fmt: "text" }
     };
 
+    const HISTORY_METRICS = [
+      { key: "pe", label: "P/E", fmt: "mult" },
+      { key: "peg", label: "PEG", fmt: "num2" },
+      { key: "roe", label: "ROE", fmt: "pct" },
+      { key: "roa", label: "ROA", fmt: "pct" },
+      { key: "net_margin", label: "Net Margin", fmt: "pct" },
+      { key: "operating_margin", label: "Op. Margin", fmt: "pct" },
+      { key: "revenue", label: "Revenue", fmt: "compactUsd" },
+      { key: "net_income", label: "Net Income", fmt: "compactUsd" },
+      { key: "free_cash_flow", label: "Free Cash Flow", fmt: "compactUsd" },
+      { key: "eps_diluted", label: "EPS Diluido", fmt: "price" },
+      { key: "debt_to_equity", label: "Debt / Equity", fmt: "num2" }
+    ];
+
     const VIEWS = {
       valuation: ["price", "market_cap", "pe_ttm", "forward_pe", "peg", "beta", "price_to_fcf", "ev_to_ebitda", "eps_cagr_2y"],
       profitability: ["revenue", "operating_income", "net_income", "operating_margin", "net_margin", "roe", "roa", "free_cash_flow", "eps_diluted"],
@@ -493,6 +660,15 @@
     let sortKey = "market_cap";
     let sortDir = "desc";
     let searchTerm = "";
+
+    // Estado de gráficos
+    let modalItem = null;
+    let modalMetric = "pe";
+    let modalChart = null;
+
+    let compareMetric = "pe";
+    let compareTickers = new Set();
+    let compareChart = null;
 
     function escapeHtml(str) {
       return String(str ?? "")
@@ -525,7 +701,7 @@
         const sign = n < 0 ? "-" : "";
         const abs = Math.abs(n);
         if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
-        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
         if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
         return `${sign}$${abs.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
       }
@@ -564,6 +740,10 @@
       return nums.reduce((a, b) => a + b, 0) / nums.length;
     }
 
+    function getMetricMeta(key) {
+      return HISTORY_METRICS.find((m) => m.key === key) || HISTORY_METRICS[0];
+    }
+
     function renderKPIs(items) {
       const avgPE = avg(items.map((d) => (d.pe_ttm > 0 && d.pe_ttm < 150 ? d.pe_ttm : null)));
       const avgROE = avg(items.map((d) => d.roe));
@@ -595,6 +775,7 @@
     }
 
     function renderTable() {
+      if (currentView === "charts") return;
       const cols = VIEWS[currentView];
       const q = searchTerm.trim().toLowerCase();
 
@@ -667,9 +848,134 @@
         .join("");
     }
 
+    /* ==================== GRÁFICO EN MODAL (1 EMPRESA, 10 AÑOS) ==================== */
+    function renderModalMetricPills() {
+      document.getElementById("modalMetricPills").innerHTML = HISTORY_METRICS.map(
+        (m) => `
+        <button
+          type="button"
+          class="pill-btn ${modalMetric === m.key ? "active" : ""}"
+          data-modal-metric="${m.key}"
+        >${m.label}</button>`
+      ).join("");
+    }
+
+    function renderModalChart() {
+      if (!modalItem) return;
+      const card = document.getElementById("modalChartCard");
+      const hist = Array.isArray(modalItem.history) ? modalItem.history : [];
+
+      if (!hist.length) {
+        card.classList.add("hidden");
+        return;
+      }
+      card.classList.remove("hidden");
+
+      const meta = getMetricMeta(modalMetric);
+      const labels = hist.map((h) => String(h.year));
+      const values = hist.map((h) => (typeof h[modalMetric] === "number" ? h[modalMetric] : null));
+      const validNums = values.filter((v) => v !== null);
+
+      const avgVal = validNums.length ? avg(validNums) : null;
+      const minVal = validNums.length ? Math.min(...validNums) : null;
+      const maxVal = validNums.length ? Math.max(...validNums) : null;
+      const lastVal = validNums.length ? validNums[validNums.length - 1] : null;
+
+      document.getElementById("modalChartStats").innerHTML = `
+        <span>Último: <strong>${formatValue(lastVal, meta.fmt)}</strong></span>
+        <span>Prom. 10A: <strong>${formatValue(avgVal, meta.fmt)}</strong></span>
+        <span>Rango: <strong>${formatValue(minVal, meta.fmt)} – ${formatValue(maxVal, meta.fmt)}</strong></span>
+      `;
+
+      const ctx = document.getElementById("modalCanvas").getContext("2d");
+      if (modalChart) modalChart.destroy();
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+      gradient.addColorStop(0, "rgba(56, 189, 248, 0.28)");
+      gradient.addColorStop(1, "rgba(56, 189, 248, 0.0)");
+
+      const datasets = [
+        {
+          label: `${modalItem.ticker} · ${meta.label}`,
+          data: values,
+          borderColor: "#38bdf8",
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: "#38bdf8",
+          tension: 0.25,
+          fill: true,
+          spanGaps: true
+        }
+      ];
+
+      if (avgVal !== null) {
+        datasets.push({
+          label: `Promedio 10A (${formatValue(avgVal, meta.fmt)})`,
+          data: labels.map(() => avgVal),
+          borderColor: "#fbbf24",
+          borderWidth: 1.5,
+          borderDash: [6, 5],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false
+        });
+      }
+
+      modalChart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: "#8fa3bf", font: { size: 12 }, boxWidth: 14 }
+            },
+            tooltip: {
+              backgroundColor: "#0f172a",
+              borderColor: "#334155",
+              borderWidth: 1,
+              titleColor: "#e6edf7",
+              bodyColor: "#e6edf7",
+              padding: 10,
+              callbacks: {
+                title: (items) => {
+                  const idx = items[0]?.dataIndex;
+                  const fy = hist[idx]?.fy_end;
+                  return fy ? `Año ${labels[idx]} (cierre ${fy})` : labels[idx];
+                },
+                label: (ctxItem) => `${ctxItem.dataset.label}: ${formatValue(ctxItem.parsed.y, meta.fmt)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(37, 51, 74, 0.45)" },
+              ticks: { color: "#8fa3bf" }
+            },
+            y: {
+              grid: { color: "rgba(37, 51, 74, 0.45)" },
+              ticks: {
+                color: "#8fa3bf",
+                callback: (val) => formatValue(val, meta.fmt)
+              }
+            }
+          }
+        }
+      });
+    }
+
     function openDetailModal(ticker) {
       const item = rawItems.find((d) => d.ticker === ticker);
       if (!item) return;
+      modalItem = item;
+
+      // Si la empresa no tiene P/E histórico (ej. BRK-B), abrir en ROE automáticamente
+      const hasCurrentMetric = (item.history || []).some((h) => typeof h[modalMetric] === "number");
+      if (!hasCurrentMetric) modalMetric = "roe";
 
       document.getElementById("modalTitle").textContent = `${item.ticker} — ${item.name}`;
       document.getElementById("modalSub").textContent =
@@ -688,7 +994,7 @@
             ["Price / FCF", item.price_to_fcf, "mult"],
             ["EV / EBITDA", item.ev_to_ebitda, "mult"],
             ["EPS Diluido", item.eps_diluted, "price"],
-            ["EPS CAGR (2Y)", item.eps_cagr_2y, "pct"]
+            ["EPS CAGR", item.eps_cagr_2y, "pct"]
           ]
         },
         {
@@ -738,10 +1044,132 @@
         .join("");
 
       document.getElementById("detailModal").classList.add("open");
+      renderModalMetricPills();
+      renderModalChart();
     }
 
     function closeModal() {
       document.getElementById("detailModal").classList.remove("open");
+    }
+
+    /* ==================== COMPARADOR MULTI-EMPRESA (10 AÑOS) ==================== */
+    function renderCompareControls() {
+      document.getElementById("compareMetricPills").innerHTML =
+        `<span class="control-label">Métrica:</span>` +
+        HISTORY_METRICS.map(
+          (m) => `
+          <button
+            type="button"
+            class="pill-btn ${compareMetric === m.key ? "active" : ""}"
+            data-cmp-metric="${m.key}"
+          >${m.label}</button>`
+        ).join("");
+
+      document.getElementById("compareTickerPills").innerHTML =
+        `<span class="control-label">Empresas:</span>` +
+        rawItems
+          .map((item, idx) => {
+            const color = PALETTE[idx % PALETTE.length];
+            const active = compareTickers.has(item.ticker);
+            return `
+              <button
+                type="button"
+                class="pill-btn ${active ? "active" : ""}"
+                data-cmp-ticker="${escapeHtml(item.ticker)}"
+              >
+                <span class="ticker-dot" style="background:${color}"></span>
+                ${escapeHtml(item.ticker)}
+              </button>`;
+          })
+          .join("");
+    }
+
+    function renderCompareChart() {
+      const meta = getMetricMeta(compareMetric);
+      const selectedItems = rawItems
+        .map((item, idx) => ({ item, color: PALETTE[idx % PALETTE.length] }))
+        .filter(({ item }) => compareTickers.has(item.ticker) && Array.isArray(item.history));
+
+      // Construir eje X común con todos los años presentes
+      const yearSet = new Set();
+      selectedItems.forEach(({ item }) => item.history.forEach((h) => yearSet.add(h.year)));
+      const years = Array.from(yearSet).sort((a, b) => a - b);
+
+      const datasets = selectedItems.map(({ item, color }) => {
+        const byYear = new Map(item.history.map((h) => [h.year, h[compareMetric]]));
+        return {
+          label: item.ticker,
+          data: years.map((y) => {
+            const v = byYear.get(y);
+            return typeof v === "number" ? v : null;
+          }),
+          borderColor: color,
+          backgroundColor: color,
+          borderWidth: 2.4,
+          pointRadius: 3.5,
+          pointHoverRadius: 6,
+          tension: 0.22,
+          fill: false,
+          spanGaps: true
+        };
+      });
+
+      const ctx = document.getElementById("compareCanvas").getContext("2d");
+      if (compareChart) compareChart.destroy();
+
+      compareChart = new Chart(ctx, {
+        type: "line",
+        data: { labels: years.map(String), datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: "#e6edf7", font: { size: 12 }, usePointStyle: true }
+            },
+            tooltip: {
+              backgroundColor: "#0f172a",
+              borderColor: "#334155",
+              borderWidth: 1,
+              titleColor: "#e6edf7",
+              bodyColor: "#e6edf7",
+              padding: 10,
+              callbacks: {
+                label: (c) => `${c.dataset.label}: ${formatValue(c.parsed.y, meta.fmt)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(37, 51, 74, 0.45)" },
+              ticks: { color: "#8fa3bf" }
+            },
+            y: {
+              grid: { color: "rgba(37, 51, 74, 0.45)" },
+              ticks: {
+                color: "#8fa3bf",
+                callback: (val) => formatValue(val, meta.fmt)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function switchView(view) {
+      currentView = view;
+      const isCharts = view === "charts";
+      document.getElementById("tableSection").classList.toggle("hidden", isCharts);
+      document.getElementById("searchInput").classList.toggle("hidden", isCharts);
+      document.getElementById("comparePanel").classList.toggle("active", isCharts);
+
+      if (isCharts) {
+        renderCompareControls();
+        renderCompareChart();
+      } else {
+        renderTable();
+      }
     }
 
     async function loadData() {
@@ -771,29 +1199,32 @@
       if (!payload || !Array.isArray(payload.data)) {
         statusEl.textContent = "Error al cargar";
         document.getElementById("tableBody").innerHTML =
-          `<tr><td class="status-msg">No se pudo leer data/fundamentales.json (${escapeHtml(lastErr?.message || "Error de red")}). Verificá que el repo sea público.</td></tr>`;
+          `<tr><td class="status-msg">No se pudo leer data/fundamentales.json (${escapeHtml(lastErr?.message || "Error de red")}).</td></tr>`;
         return;
       }
 
       rawItems = payload.data;
-      // Si el JSON todavía no tiene market_cap, ordena por revenue por defecto
       if (!rawItems.some((d) => typeof d.market_cap === "number")) {
         sortKey = "revenue";
       }
 
+      // Preseleccionar las 4 primeras empresas para el comparador histórico
+      if (compareTickers.size === 0) {
+        rawItems.slice(0, 4).forEach((d) => compareTickers.add(d.ticker));
+      }
+
       statusEl.textContent = `Actualizado: ${payload.updated_at || "N/D"}`;
       renderKPIs(rawItems);
-      renderTable();
+      switchView(currentView);
     }
 
-    // Eventos
+    // Eventos principales
     document.getElementById("viewTabs").addEventListener("click", (e) => {
       const btn = e.target.closest(".tab-btn");
       if (!btn) return;
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      currentView = btn.dataset.view;
-      renderTable();
+      switchView(btn.dataset.view);
     });
 
     document.getElementById("searchInput").addEventListener("input", (e) => {
@@ -817,6 +1248,37 @@
     document.getElementById("tableBody").addEventListener("click", (e) => {
       const tr = e.target.closest("tr[data-ticker]");
       if (tr) openDetailModal(tr.dataset.ticker);
+    });
+
+    // Eventos del gráfico en modal
+    document.getElementById("modalMetricPills").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-modal-metric]");
+      if (!btn) return;
+      modalMetric = btn.dataset.modalMetric;
+      renderModalMetricPills();
+      renderModalChart();
+    });
+
+    // Eventos del comparador 10A
+    document.getElementById("compareMetricPills").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-cmp-metric]");
+      if (!btn) return;
+      compareMetric = btn.dataset.cmpMetric;
+      renderCompareControls();
+      renderCompareChart();
+    });
+
+    document.getElementById("compareTickerPills").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-cmp-ticker]");
+      if (!btn) return;
+      const tk = btn.dataset.cmpTicker;
+      if (compareTickers.has(tk)) {
+        compareTickers.delete(tk);
+      } else {
+        compareTickers.add(tk);
+      }
+      renderCompareControls();
+      renderCompareChart();
     });
 
     document.getElementById("refreshBtn").addEventListener("click", loadData);
