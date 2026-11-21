@@ -3,8 +3,7 @@ name: Actualizar Fundamentales SEC
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 22 * * 1-5"   # Lunes a viernes 19:00 hs ARG (después del cierre NYSE)
-
+    - cron: "0 22 * * 1-5"
 
 permissions:
   contents: write
@@ -23,10 +22,9 @@ jobs:
           python-version: "3.11"
 
       - name: Instalar dependencias
-        run: pip install requests yfinance
+        run: pip install --upgrade requests yfinance
 
-
-      - name: Ejecutar extracción SEC
+      - name: Ejecutar extracción SEC y Mercado
         run: python scripts/fetch_sec.py
 
       - name: Guardar cambios en el repositorio
@@ -34,5 +32,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/fundamentales.json
-          git diff --staged --quiet || git commit -m "Actualizar fundamentales SEC"
+          git diff --staged --quiet || git commit -m "Actualizar fundamentales SEC y ratios"
           git push
