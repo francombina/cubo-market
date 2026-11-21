@@ -23,7 +23,8 @@ jobs:
           python-version: "3.11"
 
       - name: Instalar dependencias
-        run: pip install requests
+        run: pip install requests yfinance
+
 
       - name: Ejecutar extracción SEC
         run: python scripts/fetch_sec.py
