@@ -1,291 +1,834 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Renta Fija Argentina | Francisco Combina</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0f172a',
-                        cardbg: '#1e293b',
-                        bordercolor: '#334155'
-                    }
-                }
-            }
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor de Fundamentales EEUU | SEC EDGAR</title>
+  <style>
+    :root {
+      --bg: #0b111b;
+      --surface: #131c2b;
+      --surface-2: #1a2538;
+      --border: #25334a;
+      --text: #e6edf7;
+      --muted: #8fa3bf;
+      --accent: #38bdf8;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --red: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px 18px 48px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .title-group h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .meta-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .updated-pill {
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      border-radius: 8px;
+    }
+
+    .btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      background: #203049;
+    }
+
+    /* KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .kpi-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-value.accent { color: var(--accent); }
+    .kpi-value.green { color: var(--green); }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 7px 13px;
+      border-radius: 7px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--accent);
+    }
+
+    .search-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      width: 260px;
+      max-width: 100%;
+      outline: none;
+    }
+
+    .search-box:focus { border-color: var(--accent); }
+
+    /* Table */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 12px 12px;
+      text-align: right;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    thead th:first-child,
+    tbody td:first-child {
+      text-align: left;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: inherit;
+    }
+
+    thead th:first-child { z-index: 3; }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: var(--accent); }
+
+    tbody tr {
+      background: var(--surface);
+      border-bottom: 1px solid rgba(37, 51, 74, 0.65);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    tbody tr:hover { background: #182437; }
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 12px 12px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .ticker-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 165px;
+    }
+
+    .ticker-symbol {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 0.92rem;
+    }
+
+    .company-name {
+      font-size: 0.76rem;
+      color: var(--muted);
+      max-width: 185px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .val-pos { color: var(--green); }
+    .val-warn { color: var(--amber); }
+    .val-neg { color: var(--red); }
+    .val-null { color: #4c5f7a; }
+
+    .status-msg {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 9, 16, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 22px 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+
+    .modal-title { font-size: 1.3rem; font-weight: 700; }
+    .modal-sub { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+    .modal-section-title {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin: 16px 0 10px;
+      font-weight: 700;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 10px;
+    }
+
+    .detail-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .detail-box span {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .detail-box strong {
+      font-size: 1.02rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .modal-footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .sec-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .sec-link:hover { text-decoration: underline; }
+  </style>
 </head>
-<body class="bg-darkbg text-slate-100 font-sans min-h-screen p-4 md:p-8">
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="title-group">
+        <h1>Fundamentales EEUU <span class="badge">SEC EDGAR + Mercado</span></h1>
+        <p class="subtitle">Balances anuales 10-K, múltiplos de valuación y rentabilidad actualizados automáticamente.</p>
+      </div>
+      <div class="meta-actions">
+        <div class="updated-pill" id="updatedAt">Cargando datos...</div>
+        <button class="btn" id="refreshBtn" type="button">Actualizar</button>
+      </div>
+    </header>
 
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-bordercolor pb-4 mb-6">
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                    <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
-                    Monitor de Renta Fija Argentina
-                </h1>
-                <p class="text-sm text-slate-400 mt-1">Gestión y Análisis de Activos &bull; <span class="text-blue-400 font-medium">Francisco Combina</span></p>
-            </div>
-            <div class="mt-3 md:mt-0 flex items-center gap-3">
-                <button onclick="abrirModalAgregar()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Agregar Bono
-                </button>
-                <span id="last-update" class="text-xs bg-slate-800 text-slate-300 px-3 py-2 rounded-lg border border-bordercolor">
-                    Actualizando...
-                </span>
-            </div>
-        </header>
+    <section class="kpi-grid" id="kpiGrid"></section>
 
-        <!-- Tarjetas de Resumen Rápido -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 uppercase tracking-wider">Riesgo País (EMBI)</span>
-                <div id="val-riesgopais" class="text-2xl font-semibold text-white mt-1">1,085 <span class="text-xs text-emerald-400 font-normal">(-12 bps)</span></div>
-            </div>
-            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 uppercase tracking-wider">Tasa TAMAR (Ref)</span>
-                <div id="val-tamar" class="text-2xl font-semibold text-white mt-1">38.5% <span class="text-xs text-slate-400 font-normal">TNA</span></div>
-            </div>
-            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 uppercase tracking-wider">Paridad Soberana USD Prom.</span>
-                <div id="val-paridad" class="text-2xl font-semibold text-white mt-1">63.4% <span class="text-xs text-emerald-400 font-normal">(+0.6%)</span></div>
-            </div>
-            <div class="bg-cardbg border border-bordercolor p-4 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 uppercase tracking-wider">TIR Soberana Promedio</span>
-                <div id="val-tir" class="text-2xl font-semibold text-white mt-1">18.2% <span class="text-xs text-rose-400 font-normal">(-0.2%)</span></div>
-            </div>
-        </div>
-
-        <!-- Contenedor Dinámico de Secciones por Tipo de Bono -->
-        <div id="secciones-container" class="space-y-8">
-            <!-- Las tablas se renderizan dinámicamente aquí -->
-        </div>
-
-        <!-- Footer -->
-        <footer class="mt-12 text-center text-xs text-slate-500 border-t border-bordercolor/50 pt-6">
-            Francisco Combina &bull; Panel de Monitoreo Financiero &bull; Datos en Tiempo Real (Actualización Automática al Refrescar)
-        </footer>
+    <div class="toolbar">
+      <div class="tabs" id="viewTabs">
+        <button class="tab-btn active" data-view="valuation" type="button">Valuación</button>
+        <button class="tab-btn" data-view="profitability" type="button">Rentabilidad y Caja</button>
+        <button class="tab-btn" data-view="balance" type="button">Balance y Solvencia</button>
+        <button class="tab-btn" data-view="all" type="button">Todas las columnas</button>
+      </div>
+      <input
+        type="text"
+        id="searchInput"
+        class="search-box"
+        placeholder="Buscar por ticker o empresa..."
+      />
     </div>
 
-    <!-- Modal para Agregar Nuevo Bono -->
-    <div id="modal-agregar" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-cardbg border border-bordercolor rounded-xl max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-4">Agregar Nuevo Instrumento</h3>
-            <form id="form-agregar" onsubmit="guardarNuevoBono(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Segmento / Tipo</label>
-                    <select id="nuevo-segmento" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-                        <option value="Soberanos">BONOS SOBERANOS</option>
-                        <option value="ON">OBLIGACIONES NEGOCIABLES (ON)</option>
-                        <option value="CER">BONOS CER</option>
-                        <option value="Duales">BONOS DUALES</option>
-                        <option value="TAMAR">BONOS TAMAR</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Ticker</label>
-                        <input type="text" id="nuevo-ticker" required placeholder="Ej. GD35" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 uppercase focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Último Precio</label>
-                        <input type="number" step="0.01" id="nuevo-precio" required placeholder="60.40" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Descripción</label>
-                    <input type="text" id="nuevo-descripcion" required placeholder="Ej. Bono USD 2035 L. Ext" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Var %</label>
-                        <input type="number" step="0.01" id="nuevo-var" required placeholder="0.50" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Paridad %</label>
-                        <input type="number" step="0.1" id="nuevo-paridad" required placeholder="59.9" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">TIR / Tasa</label>
-                        <input type="text" id="nuevo-tir" required placeholder="16.9% (TIR)" class="w-full bg-slate-900 border border-bordercolor rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="cerrarModalAgregar()" class="px-4 py-2 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Guardar Instrumento</button>
-                </div>
-            </form>
-        </div>
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td class="status-msg">Descargando datos desde GitHub...</td></tr>
+        </tbody>
+      </table>
     </div>
+    <p class="hint">Hacé clic en cualquier encabezado para ordenar o en una fila para ver la ficha completa.</p>
+  </div>
 
-    <!-- Script de Lógica y Dinamismo -->
-    <script>
-        // Base de datos inicial almacenada en memoria / LocalStorage
-        const datosIniciales = [
-            // SOBERANOS
-            { segmento: "Soberanos", ticker: "AL30", desc: "Bono USD 2030 L. Arg", precio: 64.50, var: 1.24, paridad: 63.8, tir: "21.4% (TIR)", color: "text-amber-400" },
-            { segmento: "Soberanos", ticker: "GD30", desc: "Bono USD 2030 L. Ext", precio: 67.20, var: 0.89, paridad: 66.5, tir: "19.8% (TIR)", color: "text-amber-400" },
-            { segmento: "Soberanos", ticker: "AL35", desc: "Bono USD 2035 L. Arg", precio: 58.10, var: -0.34, paridad: 57.2, tir: "17.5% (TIR)", color: "text-amber-400" },
-            { segmento: "Soberanos", ticker: "GD35", desc: "Bono USD 2035 L. Ext", precio: 60.40, var: 0.50, paridad: 59.9, tir: "16.9% (TIR)", color: "text-amber-400" },
-            
-            // ON
-            { segmento: "ON", ticker: "YMCIO", desc: "ON YPF Cl. XXVII Vto. 2026", precio: 102.50, var: 0.10, paridad: 101.8, tir: "8.5% (TIR)", color: "text-purple-400" },
-            { segmento: "ON", ticker: "MRCMO", desc: "ON Arcor Cl. 10 Vto. 2027", precio: 100.80, var: 0.00, paridad: 100.5, tir: "7.9% (TIR)", color: "text-purple-400" },
-            { segmento: "ON", ticker: "PGCNO", desc: "ON Pan American Energy 2028", precio: 101.20, var: 0.25, paridad: 100.9, tir: "7.4% (TIR)", color: "text-purple-400" },
+  <!-- Modal de Ficha Detallada -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle"></div>
+          <div class="modal-sub" id="modalSub"></div>
+        </div>
+        <button class="btn" id="closeModalBtn" type="button">Cerrar</button>
+      </div>
+      <div id="modalContent"></div>
+      <div class="modal-footer">
+        <a id="secLink" class="sec-link" href="#" target="_blank" rel="noopener noreferrer">
+          Ver balances originales en SEC EDGAR →
+        </a>
+        <span class="modal-sub" id="modalFy"></span>
+      </div>
+    </div>
+  </div>
 
-            // CER
-            { segmento: "CER", ticker: "TZX26", desc: "Bono Tasa Cero + CER Vto. 2026", precio: 1420.00, var: 1.45, paridad: 99.2, tir: "CER + 6.2%", color: "text-emerald-400" },
-            { segmento: "CER", ticker: "PAP27", desc: "Bono Dual / CER Vto. 2027", precio: 1350.50, var: -0.20, paridad: 98.5, tir: "CER + 7.1%", color: "text-emerald-400" },
+  <script>
+    const RAW_JSON_URL =
+      "https://raw.githubusercontent.com/francombina/cubo-market/refs/heads/main/data/fundamentales.json";
 
-            // Duales
-            { segmento: "Duales", ticker: "TDS26", desc: "Bono Dual Vto. Ago 2026", precio: 1120.00, var: 0.65, paridad: 100.1, tir: "Cobertura Dual", color: "text-cyan-400" },
+    const COLUMNS = {
+      price: { label: "Precio", fmt: "price" },
+      market_cap: { label: "Market Cap", fmt: "compactUsd" },
+      pe_ttm: { label: "P/E (TTM)", fmt: "mult" },
+      forward_pe: { label: "Fwd P/E", fmt: "mult" },
+      peg: { label: "PEG", fmt: "num2", color: "peg" },
+      beta: { label: "Beta", fmt: "num2" },
+      price_to_fcf: { label: "P / FCF", fmt: "mult" },
+      ev_to_ebitda: { label: "EV / EBITDA", fmt: "mult" },
+      eps_diluted: { label: "EPS Dil.", fmt: "price" },
+      eps_cagr_2y: { label: "EPS CAGR 2Y", fmt: "pct", color: "posNeg" },
+      revenue: { label: "Revenue", fmt: "compactUsd" },
+      operating_income: { label: "EBIT", fmt: "compactUsd" },
+      net_income: { label: "Net Income", fmt: "compactUsd" },
+      operating_margin: { label: "Op. Margin", fmt: "pct", color: "posNeg" },
+      net_margin: { label: "Net Margin", fmt: "pct", color: "posNeg" },
+      roe: { label: "ROE", fmt: "pct", color: "posNeg" },
+      roa: { label: "ROA", fmt: "pct", color: "posNeg" },
+      operating_cash_flow: { label: "Operating CF", fmt: "compactUsd" },
+      capex: { label: "CapEx", fmt: "compactUsd" },
+      free_cash_flow: { label: "Free Cash Flow", fmt: "compactUsd", color: "posNeg" },
+      assets: { label: "Assets", fmt: "compactUsd" },
+      equity: { label: "Equity", fmt: "compactUsd" },
+      cash: { label: "Cash", fmt: "compactUsd" },
+      long_term_debt: { label: "LT Debt", fmt: "compactUsd" },
+      debt_to_equity: { label: "Debt / Equity", fmt: "num2", color: "debt" },
+      fy_end: { label: "Cierre FY", fmt: "text" }
+    };
 
-            // TAMAR
-            { segmento: "TAMAR", ticker: "BTMR6", desc: "Bono Atado a Tasa TAMAR 2026", precio: 1015.00, var: 0.30, paridad: 100.0, tir: "TAMAR + 2.5%", color: "text-indigo-400" }
-        ];
+    const VIEWS = {
+      valuation: ["price", "market_cap", "pe_ttm", "forward_pe", "peg", "beta", "price_to_fcf", "ev_to_ebitda", "eps_cagr_2y"],
+      profitability: ["revenue", "operating_income", "net_income", "operating_margin", "net_margin", "roe", "roa", "free_cash_flow", "eps_diluted"],
+      balance: ["assets", "equity", "cash", "long_term_debt", "debt_to_equity", "operating_cash_flow", "capex", "fy_end"],
+      all: [
+        "price", "market_cap", "pe_ttm", "forward_pe", "peg", "beta", "price_to_fcf", "ev_to_ebitda",
+        "revenue", "operating_income", "net_income", "eps_diluted", "eps_cagr_2y",
+        "operating_margin", "net_margin", "roe", "roa", "free_cash_flow",
+        "assets", "equity", "cash", "long_term_debt", "debt_to_equity", "fy_end"
+      ]
+    };
 
-        function obtenerBonos() {
-            const guardados = localStorage.getItem('combina_bonos_data');
-            if (guardados) {
-                try { return JSON.parse(guardados); } catch(e) { return datosIniciales; }
-            }
-            return datosIniciales;
+    let rawItems = [];
+    let currentView = "valuation";
+    let sortKey = "market_cap";
+    let sortDir = "desc";
+    let searchTerm = "";
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function formatValue(val, fmt) {
+      if (val === null || val === undefined || val === "") return "—";
+      if (fmt === "text") return escapeHtml(val);
+
+      const n = Number(val);
+      if (!Number.isFinite(n)) return "—";
+
+      if (fmt === "price") {
+        return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      if (fmt === "mult") {
+        return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x";
+      }
+      if (fmt === "num2") {
+        return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      if (fmt === "pct") {
+        return (n * 100).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+      }
+      if (fmt === "compactUsd") {
+        const sign = n < 0 ? "-" : "";
+        const abs = Math.abs(n);
+        if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}T`;
+        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+        if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+        return `${sign}$${abs.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+      }
+      if (fmt === "shares") {
+        const abs = Math.abs(n);
+        if (abs >= 1e9) return `${(abs / 1e9).toFixed(2)}B`;
+        if (abs >= 1e6) return `${(abs / 1e6).toFixed(1)}M`;
+        return abs.toLocaleString("en-US", { maximumFractionDigits: 0 });
+      }
+      return String(n);
+    }
+
+    function getValueClass(val, colorRule) {
+      if (val === null || val === undefined || val === "") return "val-null";
+      const n = Number(val);
+      if (!Number.isFinite(n)) return "val-null";
+
+      if (colorRule === "posNeg") {
+        if (n > 0) return "val-pos";
+        if (n < 0) return "val-neg";
+      }
+      if (colorRule === "peg") {
+        if (n > 0 && n <= 1.5) return "val-pos";
+        if (n > 2.5) return "val-warn";
+      }
+      if (colorRule === "debt") {
+        if (n <= 0.5) return "val-pos";
+        if (n >= 1.5) return "val-warn";
+      }
+      return "";
+    }
+
+    function avg(arr) {
+      const nums = arr.filter((v) => typeof v === "number" && Number.isFinite(v));
+      if (!nums.length) return null;
+      return nums.reduce((a, b) => a + b, 0) / nums.length;
+    }
+
+    function renderKPIs(items) {
+      const avgPE = avg(items.map((d) => (d.pe_ttm > 0 && d.pe_ttm < 150 ? d.pe_ttm : null)));
+      const avgROE = avg(items.map((d) => d.roe));
+      const avgBeta = avg(items.map((d) => d.beta));
+      const totalFcf = items.reduce((acc, d) => acc + (typeof d.free_cash_flow === "number" ? d.free_cash_flow : 0), 0);
+
+      document.getElementById("kpiGrid").innerHTML = `
+        <div class="kpi-card">
+          <div class="kpi-label">Empresas monitoreadas</div>
+          <div class="kpi-value accent">${items.length}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">P/E (TTM) promedio</div>
+          <div class="kpi-value">${formatValue(avgPE, "mult")}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">ROE promedio</div>
+          <div class="kpi-value green">${formatValue(avgROE, "pct")}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Beta promedio</div>
+          <div class="kpi-value">${formatValue(avgBeta, "num2")}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">FCF combinado (10-K)</div>
+          <div class="kpi-value green">${formatValue(totalFcf, "compactUsd")}</div>
+        </div>
+      `;
+    }
+
+    function renderTable() {
+      const cols = VIEWS[currentView];
+      const q = searchTerm.trim().toLowerCase();
+
+      let filtered = rawItems.filter((item) => {
+        if (!q) return true;
+        return (
+          (item.ticker || "").toLowerCase().includes(q) ||
+          (item.name || "").toLowerCase().includes(q)
+        );
+      });
+
+      filtered.sort((a, b) => {
+        const va = a[sortKey];
+        const vb = b[sortKey];
+        const aNull = va === null || va === undefined || va === "";
+        const bNull = vb === null || vb === undefined || vb === "";
+        if (aNull && bNull) return 0;
+        if (aNull) return 1;
+        if (bNull) return -1;
+
+        if (typeof va === "string" || typeof vb === "string") {
+          const cmp = String(va).localeCompare(String(vb));
+          return sortDir === "asc" ? cmp : -cmp;
         }
+        return sortDir === "asc" ? va - vb : vb - va;
+      });
 
-        function guardarBonos(bonos) {
-            localStorage.setItem('combina_bonos_data', JSON.stringify(bonos));
+      const arrow = (key) => (sortKey === key ? (sortDir === "asc" ? " ▲" : " ▼") : "");
+
+      document.getElementById("tableHead").innerHTML = `
+        <tr>
+          <th data-sort="ticker" class="${sortKey === "ticker" ? "sorted" : ""}">Empresa${arrow("ticker")}</th>
+          ${cols
+            .map(
+              (key) => `
+              <th data-sort="${key}" class="${sortKey === key ? "sorted" : ""}">
+                ${COLUMNS[key].label}${arrow(key)}
+              </th>`
+            )
+            .join("")}
+        </tr>
+      `;
+
+      const tbody = document.getElementById("tableBody");
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="${cols.length + 1}" class="status-msg">No se encontraron empresas para "${escapeHtml(searchTerm)}".</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered
+        .map(
+          (item) => `
+          <tr data-ticker="${escapeHtml(item.ticker)}">
+            <td>
+              <div class="ticker-cell">
+                <span class="ticker-symbol">${escapeHtml(item.ticker)}</span>
+                <span class="company-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
+              </div>
+            </td>
+            ${cols
+              .map((key) => {
+                const col = COLUMNS[key];
+                const val = item[key];
+                const cls = getValueClass(val, col.color);
+                return `<td class="${cls}">${formatValue(val, col.fmt)}</td>`;
+              })
+              .join("")}
+          </tr>`
+        )
+        .join("");
+    }
+
+    function openDetailModal(ticker) {
+      const item = rawItems.find((d) => d.ticker === ticker);
+      if (!item) return;
+
+      document.getElementById("modalTitle").textContent = `${item.ticker} — ${item.name}`;
+      document.getElementById("modalSub").textContent =
+        `CIK ${item.cik} · Precio: ${formatValue(item.price, "price")} · Market Cap: ${formatValue(item.market_cap, "compactUsd")}`;
+      document.getElementById("modalFy").textContent = `Último cierre 10-K: ${item.fy_end || "N/D"}`;
+      document.getElementById("secLink").href = `https://www.sec.gov/edgar/browse/?CIK=${encodeURIComponent(item.cik)}`;
+
+      const sections = [
+        {
+          title: "Valuación y Riesgo",
+          fields: [
+            ["P/E (TTM)", item.pe_ttm, "mult"],
+            ["Forward P/E", item.forward_pe, "mult"],
+            ["PEG", item.peg, "num2"],
+            ["Beta (5Y)", item.beta, "num2"],
+            ["Price / FCF", item.price_to_fcf, "mult"],
+            ["EV / EBITDA", item.ev_to_ebitda, "mult"],
+            ["EPS Diluido", item.eps_diluted, "price"],
+            ["EPS CAGR (2Y)", item.eps_cagr_2y, "pct"]
+          ]
+        },
+        {
+          title: "Resultados y Generación de Caja (10-K)",
+          fields: [
+            ["Revenue", item.revenue, "compactUsd"],
+            ["Operating Income", item.operating_income, "compactUsd"],
+            ["Net Income", item.net_income, "compactUsd"],
+            ["Operating Margin", item.operating_margin, "pct"],
+            ["Net Margin", item.net_margin, "pct"],
+            ["Operating Cash Flow", item.operating_cash_flow, "compactUsd"],
+            ["CapEx", item.capex, "compactUsd"],
+            ["Free Cash Flow", item.free_cash_flow, "compactUsd"]
+          ]
+        },
+        {
+          title: "Balance y Solvencia",
+          fields: [
+            ["Assets", item.assets, "compactUsd"],
+            ["Equity", item.equity, "compactUsd"],
+            ["Cash", item.cash, "compactUsd"],
+            ["Long Term Debt", item.long_term_debt, "compactUsd"],
+            ["ROE", item.roe, "pct"],
+            ["ROA", item.roa, "pct"],
+            ["Debt / Equity", item.debt_to_equity, "num2"],
+            ["Acciones", item.shares_outstanding, "shares"]
+          ]
         }
+      ];
 
-        function renderizarMonitor() {
-            const bonos = obtenerBonos();
-            const container = document.getElementById('secciones-container');
-            container.innerHTML = '';
+      document.getElementById("modalContent").innerHTML = sections
+        .map(
+          (sec) => `
+          <div class="modal-section-title">${sec.title}</div>
+          <div class="detail-grid">
+            ${sec.fields
+              .map(
+                ([lbl, val, fmt]) => `
+                <div class="detail-box">
+                  <span>${lbl}</span>
+                  <strong>${formatValue(val, fmt)}</strong>
+                </div>`
+              )
+              .join("")}
+          </div>`
+        )
+        .join("");
 
-            // Agrupar por segmento
-            const segmentos = {
-                "Soberanos": { titulo: "BONOS SOBERANOS", colorBorde: "border-amber-500/30", badgeBg: "bg-amber-500/10 text-amber-400" },
-                "ON": { titulo: "OBLIGACIONES NEGOCIABLES (ON)", colorBorde: "border-purple-500/30", badgeBg: "bg-purple-500/10 text-purple-400" },
-                "CER": { titulo: "BONOS CON AJUSTE CER", colorBorde: "border-emerald-500/30", badgeBg: "bg-emerald-500/10 text-emerald-400" },
-                "Duales": { titulo: "BONOS DUALES", colorBorde: "border-cyan-500/30", badgeBg: "bg-cyan-500/10 text-cyan-400" },
-                "TAMAR": { titulo: "BONOS TASA TAMAR", colorBorde: "border-indigo-500/30", badgeBg: "bg-indigo-500/10 text-indigo-400" }
-            };
+      document.getElementById("detailModal").classList.add("open");
+    }
 
-            Object.keys(segmentos).forEach(segKey => {
-                const items = bonos.filter(b => b.segmento === segKey);
-                if (items.length === 0) return;
+    function closeModal() {
+      document.getElementById("detailModal").classList.remove("open");
+    }
 
-                const config = segmentos[segKey];
-                
-                let htmlRows = items.map(b => {
-                    const varColor = b.var > 0 ? 'text-emerald-400' : (b.var < 0 ? 'text-rose-400' : 'text-slate-400');
-                    const varSign = b.var > 0 ? '+' : '';
-                    return `
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-3 px-4 font-mono font-semibold ${b.color || 'text-blue-400'}">${b.ticker}</td>
-                            <td class="py-3 px-4 text-slate-300">${b.desc}</td>
-                            <td class="py-3 px-4 text-right font-mono">${Number(b.precio).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
-                            <td class="py-3 px-4 text-right font-mono ${varColor}">${varSign}${b.var.toFixed(2)}%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">${b.paridad}%</td>
-                            <td class="py-3 px-4 text-right font-mono text-slate-300">${b.tir}</td>
-                        </tr>
-                    `;
-                }).join('');
+    async function loadData() {
+      const statusEl = document.getElementById("updatedAt");
+      statusEl.textContent = "Actualizando...";
 
-                const seccionHtml = `
-                    <div class="bg-cardbg border border-bordercolor rounded-xl overflow-hidden shadow-xl mb-6">
-                        <div class="bg-slate-900/80 px-5 py-3 border-b border-bordercolor flex justify-between items-center">
-                            <h2 class="text-sm font-semibold tracking-wider uppercase text-white flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded text-xs ${config.badgeBg}">${segKey}</span>
-                                ${config.titulo}
-                            </h2>
-                            <span class="text-xs text-slate-400 font-mono">${items.length} activos</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b border-bordercolor/60 text-xs uppercase tracking-wider text-slate-400 bg-slate-900/30">
-                                        <th class="py-2.5 px-4 font-medium">Ticker</th>
-                                        <th class="py-2.5 px-4 font-medium">Descripción</th>
-                                        <th class="py-2.5 px-4 font-medium text-right">Último</th>
-                                        <th class="py-2.5 px-4 font-medium text-right">Var %</th>
-                                        <th class="py-2.5 px-4 font-medium text-right">Paridad</th>
-                                        <th class="py-2.5 px-4 font-medium text-right">TIR / Tasa</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-bordercolor text-sm">
-                                    ${htmlRows}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += seccionHtml;
-            });
+      const cacheBuster = `?t=${Date.now()}`;
+      const urls =
+        window.location.protocol.startsWith("http")
+          ? [`./data/fundamentales.json${cacheBuster}`, `${RAW_JSON_URL}${cacheBuster}`]
+          : [`${RAW_JSON_URL}${cacheBuster}`];
 
-            // Actualizar timestamp y simular pequeña variación de actualización en tiempo real al refrescar
-            const ahora = new Date();
-            document.getElementById('last-update').innerText = `Actualizado: ${ahora.toLocaleDateString()} ${ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      let payload = null;
+      let lastErr = null;
+
+      for (const url of urls) {
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          payload = await resp.json();
+          break;
+        } catch (err) {
+          lastErr = err;
         }
+      }
 
-        function abrirModalAgregar() {
-            document.getElementById('modal-agregar').classList.remove('hidden');
-            document.getElementById('modal-agregar').classList.add('flex');
-        }
+      if (!payload || !Array.isArray(payload.data)) {
+        statusEl.textContent = "Error al cargar";
+        document.getElementById("tableBody").innerHTML =
+          `<tr><td class="status-msg">No se pudo leer data/fundamentales.json (${escapeHtml(lastErr?.message || "Error de red")}). Verificá que el repo sea público.</td></tr>`;
+        return;
+      }
 
-        function cerrarModalAgregar() {
-            document.getElementById('modal-agregar').classList.remove('flex');
-            document.getElementById('modal-agregar').classList.add('hidden');
-            document.getElementById('form-agregar').reset();
-        }
+      rawItems = payload.data;
+      // Si el JSON todavía no tiene market_cap, ordena por revenue por defecto
+      if (!rawItems.some((d) => typeof d.market_cap === "number")) {
+        sortKey = "revenue";
+      }
 
-        function guardarNuevoBono(e) {
-            e.preventDefault();
-            const segmento = document.getElementById('nuevo-segmento').value;
-            const ticker = document.getElementById('nuevo-ticker').value.toUpperCase().trim();
-            const precio = parseFloat(document.getElementById('nuevo-precio').value);
-            const desc = document.getElementById('nuevo-descripcion').value.trim();
-            const varVal = parseFloat(document.getElementById('nuevo-var').value);
-            const paridad = parseFloat(document.getElementById('nuevo-paridad').value);
-            const tir = document.getElementById('nuevo-tir').value.trim();
+      statusEl.textContent = `Actualizado: ${payload.updated_at || "N/D"}`;
+      renderKPIs(rawItems);
+      renderTable();
+    }
 
-            let color = "text-blue-400";
-            if(segmento === "Soberanos") color = "text-amber-400";
-            if(segmento === "ON") color = "text-purple-400";
-            if(segmento === "CER") color = "text-emerald-400";
-            if(segmento === "Duales") color = "text-cyan-400";
-            if(segmento === "TAMAR") color = "text-indigo-400";
+    // Eventos
+    document.getElementById("viewTabs").addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab-btn");
+      if (!btn) return;
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentView = btn.dataset.view;
+      renderTable();
+    });
 
-            const nuevoItem = { segmento, ticker, desc, precio, var: varVal, paridad, tir, color };
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      searchTerm = e.target.value;
+      renderTable();
+    });
 
-            const bonos = obtenerBonos();
-            bonos.push(nuevoItem);
-            guardarBonos(bonos);
+    document.getElementById("tableHead").addEventListener("click", (e) => {
+      const th = e.target.closest("th[data-sort]");
+      if (!th) return;
+      const key = th.dataset.sort;
+      if (sortKey === key) {
+        sortDir = sortDir === "asc" ? "desc" : "asc";
+      } else {
+        sortKey = key;
+        sortDir = key === "ticker" ? "asc" : "desc";
+      }
+      renderTable();
+    });
 
-            cerrarModalAgregar();
-            renderizarMonitor();
-        }
+    document.getElementById("tableBody").addEventListener("click", (e) => {
+      const tr = e.target.closest("tr[data-ticker]");
+      if (tr) openDetailModal(tr.dataset.ticker);
+    });
 
-        // Simulación de actualización automática al cargar la página
-        window.onload = function() {
-            // Generar variación aleatoria sutil en precios para dar sensación de mercado activo al refrescar
-            let bonos = obtenerBonos();
-            bonos = bonos.map(b => {
-                const variacionAleatoria = (Math.random() * 0.6 - 0.3); // entre -0.3% y +0.3%
-                b.var += Number(variacionAleatoria.toFixed(2));
-                b.precio = Number((b.precio * (1 + variacionAleatoria / 100)).toFixed(2));
-                return b;
-            });
-            guardarBonos(bonos);
-            renderizarMonitor();
-        };
-    </script>
+    document.getElementById("refreshBtn").addEventListener("click", loadData);
+    document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+    document.getElementById("detailModal").addEventListener("click", (e) => {
+      if (e.target.id === "detailModal") closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+
+    loadData();
+  </script>
 </body>
 </html>
