@@ -9,7 +9,7 @@ import requests
 import yfinance as yf
 
 # Reemplazá por tu Gmail real
-HEADERS = {"User-Agent": "CuboMarketSecPipeline tuemail@gmail.com"}
+HEADERS = {"User-Agent": "fran combina francisco.combina@gmail.com"}
 
 TICKERS_FILE = "tickers.json"
 OUTPUT_FILE = "data/fundamentales.json"
